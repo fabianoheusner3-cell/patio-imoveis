@@ -1,0 +1,26 @@
+{
+  "name": "imobiliaria-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "playwright test",
+    "format": "prettier --write src"
+  },
+  "dependencies": {
+    "lucide-react": "^0.552.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.5",
+    "recharts": "^3.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@vitejs/plugin-react": "^5.1.0",
+    "prettier": "^3.9.10",
+    "vite": "^7.2.0"
+  }
+}

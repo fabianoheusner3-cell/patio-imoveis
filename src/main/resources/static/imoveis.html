@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR"><head><script src="/auth.js"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Imóveis</title><link rel="stylesheet" href="/styles.css?v=5"><script src="/imoveis.js?v=6" defer></script><script src="/fotos.js?v=5" defer></script><script src="/sabermais.js?v=2" defer></script></head>
+<body><header class="topbar"><div class="brand">Cadastro de imóveis</div><a href="/">Tipos de imóveis</a></header>
+<main><div class="heading"><h1>Imóveis</h1><p>Cadastre e consulte os imóveis, seus tipos e bairros.</p><p><a href="#imoveis-cadastrados">Ver imóveis e fotos cadastradas</a></p></div>
+<div id="message" role="status" hidden></div>
+<section class="card photos-toolbar" aria-label="Fotos dos imóveis">
+ <label for="photos-property">Fotos do imóvel</label>
+ <select id="photos-property" aria-label="Escolher imóvel para ver fotos"></select>
+ <button id="open-photos" class="primary" type="button" disabled>Adicionar ou ver fotos</button>
+</section>
+<section class="card"><h2>Cadastrar bairro</h2><form id="bairro-form"><label for="bairro-nome">Nome do bairro</label><input id="bairro-nome" required maxlength="255"><button class="secondary">Cadastrar bairro</button></form></section>
+<div class="layout"><section class="card form-card"><h2 id="form-title">Novo imóvel</h2><form id="imovel-form"><div id="fields"></div><button class="primary" id="save">Cadastrar imóvel</button><button type="button" class="secondary" id="cancel" hidden>Cancelar edição</button></form></section>
+<section class="card list-card" id="imoveis-cadastrados"><h2>Imóveis cadastrados</h2><p id="total"></p><div class="table-wrap"><table><thead><tr><th>ID</th><th>Foto</th><th>Imóvel</th><th>Tipo / Bairro</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table></div><footer class="pagination"><button id="previous" class="secondary">Anterior</button><span id="page-label"></span><button id="next" class="secondary">Próxima</button></footer></section></div></main><dialog id="photos-dialog" class="photos-dialog" aria-labelledby="photos-title">
+ <div class="photos-heading"><h2 id="photos-title">Fotos do imóvel</h2><button type="button" id="photos-close" class="secondary">Fechar</button></div>
+ <p id="photos-message" role="status" hidden></p>
+ <form id="photos-form">
+  <label for="photos-files">Adicionar fotos</label>
+  <input id="photos-files" type="file" accept="image/jpeg,image/png,image/gif" multiple required>
+  <p class="hint">JPG, PNG ou GIF. Até 10 MB por foto.</p>
+  <button id="photos-upload" class="primary" type="submit">Enviar fotos</button>
+ </form>
+ <div id="photos-gallery" class="photos-gallery" aria-live="polite"></div>
+</dialog>
+<dialog id="sabermais-dialog" aria-labelledby="sabermais-title">
+    <div class="photos-heading"><h2 id="sabermais-title">Saber mais</h2><button id="sabermais-close" class="secondary" type="button">Fechar</button></div>
+    <p id="sabermais-property"></p>
+    <p>Preencha seus dados para receber as informações deste imóvel por email.</p>
+    <form id="sabermais-form">
+        <label for="cliente-nome">Nome</label><input id="cliente-nome" name="nome" autocomplete="name" required maxlength="150">
+        <label for="cliente-telefone">Telefone</label><input id="cliente-telefone" name="telefone" type="tel" autocomplete="tel" required minlength="6" maxlength="30">
+        <label for="cliente-email">Email</label><input id="cliente-email" name="email" type="email" autocomplete="email" required maxlength="254">
+        <label for="cliente-mensagem">Mensagem</label><textarea id="cliente-mensagem" name="mensagem" required maxlength="4000" rows="4"></textarea>
+        <button id="sabermais-send" class="primary" type="submit">Receber informações</button>
+    </form>
+    <p id="sabermais-status" role="status" hidden></p>
+</dialog>
+</body></html>

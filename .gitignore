@@ -1,0 +1,16 @@
+/target/
+/.m2/
+/.idea/
+*.iml
+/.classpath
+/.project
+/.settings/
+*.log
+/data/
+/tipos-imoveis-backup.json
+/uploads/
+
+/config/mailtrap-local.properties
+.env
+.env.local
+*.zip

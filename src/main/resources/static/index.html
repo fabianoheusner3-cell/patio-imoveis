@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><script src="/auth.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tipos de imóveis</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><div class="brand"><span class="brand-icon" aria-hidden="true">⌂</span> Cadastro de imóveis</div><a href="/imoveis.html#imoveis-cadastrados">Ver imóveis e fotos</a></header>
+  <main>
+    <div class="heading"><p class="eyebrow">ORGANIZAÇÃO DO CADASTRO</p><h1>Tipos de imóveis</h1><p>Cadastre e organize as categorias dos seus imóveis.</p></div>
+    <div id="message" role="status" aria-live="polite" hidden></div>
+    <div class="layout">
+      <section class="card form-card" aria-labelledby="form-title">
+        <div class="section-label">CADASTRO</div>
+        <h2 id="form-title">Novo tipo de imóvel</h2>
+        <p id="form-description" class="muted">Informe um nome para adicionar à lista.</p>
+        <form id="form">
+          <label for="nome">Nome do tipo de imóvel</label>
+          <input id="nome" name="nome" placeholder="Ex.: Casa, Apartamento, Terreno" maxlength="255" required autocomplete="off">
+          <p class="hint">Use um nome que identifique a categoria.</p>
+          <button id="save" class="primary" type="submit">Cadastrar tipo</button>
+          <button id="cancel" class="secondary" type="button" hidden>Cancelar edição</button>
+        </form>
+        <div class="save-note">Os cadastros são salvos no banco de dados.</div>
+      </section>
+      <section class="card list-card" aria-labelledby="list-title">
+        <div class="list-heading"><div><h2 id="list-title">Tipos cadastrados</h2><p id="total" class="muted">Carregando registros…</p></div><button id="refresh" class="secondary" type="button">Atualizar</button></div>
+        <div class="table-wrap"><table><thead><tr><th scope="col">ID</th><th scope="col">Nome</th><th scope="col" class="actions-heading">Ações</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <p id="empty" class="empty" hidden>Nenhum tipo cadastrado. Adicione o primeiro pelo formulário.</p>
+        <footer class="pagination"><label for="size">Por página <select id="size"><option value="5">5</option><option value="10">10</option><option value="20">20</option></select></label><div class="page-buttons"><button id="previous" class="secondary" type="button" aria-label="Página anterior">Anterior</button><span id="page-label">Página 1 de 1</span><button id="next" class="secondary" type="button" aria-label="Próxima página">Próxima</button></div></footer>
+      </section>
+    </div>
+  </main>
+  <dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">Apagar tipo de imóvel?</h2><p id="delete-description"></p><p class="muted">Essa ação não pode ser desfeita.</p><div class="dialog-actions"><button id="delete-cancel" class="secondary" type="button">Cancelar</button><button id="delete-confirm" class="danger" type="button">Apagar</button></div></dialog>
+</body>
+</html>

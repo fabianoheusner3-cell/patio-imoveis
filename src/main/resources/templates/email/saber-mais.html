@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Informações do imóvel</title></head>
+<body style="margin:0;background:#f4f6f9;padding:24px;font-family:Arial,sans-serif;color:#243447;">
+<div style="max-width:640px;margin:auto;background:white;padding:28px;border-radius:12px;">
+    <p style="color:#246c53;font-weight:bold;" th:text="${imobiliaria}">Imobiliária Bairro</p>
+    <h1 style="font-size:24px;">Olá, <span th:text="${cliente.nome}">Cliente</span>!</h1>
+    <p>Recebemos seu interesse no imóvel <strong th:text="${imovel.titulo}">Imóvel</strong>.</p>
+    <p style="line-height:1.6;white-space:pre-wrap;" th:text="${mensagemImobiliaria}"></p>
+    <h2 style="font-size:20px;color:#246c53;">Dados do imóvel</h2>
+    <table style="width:100%;border-collapse:collapse;text-align:left;" cellpadding="8">
+        <tr><th>Código</th><td th:text="${imovel.id}">1</td></tr>
+        <tr><th>Título</th><td th:text="${imovel.titulo}">Casa</td></tr>
+        <tr><th>Tipo</th><td th:text="${imovel.tipoImovel != null ? imovel.tipoImovel.nome : 'Não informado'}"></td></tr>
+        <tr><th>Bairro</th><td th:text="${imovel.bairro != null ? imovel.bairro.nome : 'Não informado'}"></td></tr>
+        <tr><th>Finalidade</th><td th:text="${imovel.finalidade ?: 'Não informada'}"></td></tr>
+        <tr><th>Status</th><td th:text="${imovel.status ?: 'Não informado'}"></td></tr>
+        <tr><th>Preço de venda</th><td th:text="${imovel.precoVenda != null ? #numbers.formatCurrency(imovel.precoVenda) : 'Não informado'}"></td></tr>
+        <tr><th>Preço de aluguel</th><td th:text="${imovel.precoAluguel != null ? #numbers.formatCurrency(imovel.precoAluguel) : 'Não informado'}"></td></tr>
+        <tr><th>Dormitórios</th><td th:text="${imovel.dormitorios != null ? imovel.dormitorios : 'Não informado'}"></td></tr>
+        <tr><th>Banheiros</th><td th:text="${imovel.banheiros != null ? imovel.banheiros : 'Não informado'}"></td></tr>
+        <tr><th>Vagas de garagem</th><td th:text="${imovel.garagem != null ? imovel.garagem : 'Não informado'}"></td></tr>
+        <tr><th>Área total (m²)</th><td th:text="${imovel.areaTotal != null ? #numbers.formatDecimal(imovel.areaTotal, 1, 2) : 'Não informada'}"></td></tr>
+        <tr><th>Área construída (m²)</th><td th:text="${imovel.areaConstruida != null ? #numbers.formatDecimal(imovel.areaConstruida, 1, 2) : 'Não informada'}"></td></tr>
+        <tr><th>Endereço</th><td><span th:text="${imovel.endereco ?: 'Não informado'}"></span><span th:if="${imovel.numero != null and !#strings.isEmpty(imovel.numero)}" th:text="${', ' + imovel.numero}"></span></td></tr>
+        <tr><th>Complemento</th><td th:text="${imovel.complemento ?: 'Não informado'}"></td></tr>
+        <tr><th>CEP</th><td th:text="${imovel.cep ?: 'Não informado'}"></td></tr>
+    </table>
+    <h3>Descrição</h3><p style="white-space:pre-wrap;line-height:1.6;" th:text="${imovel.descricao ?: 'Não informada'}"></p>
+    <h3>Características</h3><p style="white-space:pre-wrap;line-height:1.6;" th:text="${imovel.caracteristicas ?: 'Não informadas'}"></p>
+    <h2 style="font-size:20px;color:#246c53;">Sua solicitação</h2>
+    <p><strong>Nome:</strong> <span th:text="${cliente.nome}"></span><br>
+       <strong>Telefone:</strong> <span th:text="${cliente.telefone}"></span><br>
+       <strong>Email:</strong> <span th:text="${cliente.email}"></span></p>
+    <p style="white-space:pre-wrap;line-height:1.6;" th:text="${cliente.mensagem}"></p>
+    <p>Atenciosamente,<br><strong th:text="${imobiliaria}"></strong></p>
+</div>
+</body>
+</html>

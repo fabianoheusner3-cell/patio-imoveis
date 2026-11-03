@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha conta</title><link rel="stylesheet" href="/styles.css"><script src="/auth.js"></script><script src="/login.js" defer></script></head>
+<body><header class="topbar"><div class="brand">Minha conta</div><a href="/imoveis.html">Imóveis</a></header>
+<main><p id="feedback" role="status"></p>
+<section class="card"><h1>Entrar</h1><form id="login-form">
+<label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+<label for="senha">Senha</label><input id="senha" type="password" autocomplete="current-password" required>
+<button class="primary">Entrar</button><button id="logout" type="button" class="secondary">Sair</button></form></section>
+<section class="card" id="status-section" hidden><h2>Alterar status de imóvel</h2><form id="status-form">
+<label for="imovel-id">ID do imóvel</label><input id="imovel-id" type="number" min="1" required>
+<label for="novo-status">Novo status</label><input id="novo-status" maxlength="255" required>
+<button class="primary">Salvar status</button></form></section>
+<section class="card" id="admin-section" hidden><h2>Gerenciar usuários</h2><form id="usuario-form">
+<label for="usuario-id">ID para editar (vazio para cadastrar)</label><input id="usuario-id" type="number" min="1">
+<label for="nome-usuario">Nome</label><input id="nome-usuario" maxlength="150" required>
+<label for="email-usuario">Email</label><input id="email-usuario" type="email" required>
+<label for="senha-usuario">Senha (mínimo 8 caracteres; deixe vazia na edição para manter)</label><input id="senha-usuario" type="password" autocomplete="new-password" minlength="8">
+<label for="perfil-usuario">Perfil</label><select id="perfil-usuario"><option>USER</option><option>ADMIN</option></select>
+<button class="primary">Salvar usuário</button></form>
+<button id="listar" class="secondary" type="button">Atualizar lista</button><div id="usuarios"></div></section>
+</main></body></html>
