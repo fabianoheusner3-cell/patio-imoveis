@@ -4,6 +4,8 @@ Consulte [README-REACT.md](README-REACT.md) para executar a nova interface, conf
 
 Resultados: [VALIDACAO-REACT.md](VALIDACAO-REACT.md).
 
+Configuracao de email escolhida: [Gmail SMTP](GMAIL.md). Execute `iniciar-gmail.cmd` para informar a senha de app somente no terminal.
+
 ---
 
 # Atividade JWT

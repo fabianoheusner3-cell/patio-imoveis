@@ -69,6 +69,8 @@ A assinatura é uma confirmação autenticada para demonstração acadêmica; n�
 
 ## Emails
 
+**Configuração escolhida: Gmail.** Veja [GMAIL.md](GMAIL.md). Na pasta do projeto, execute `.\iniciar-gmail.cmd`: o script solicita a senha de app com entrada oculta e inicia a API com o perfil Gmail. O endereço autorizado como remetente e destinatário é `fabianoheusner3@gmail.com`. Nenhuma senha é gravada no código ou na entrega.
+
 O envio usa o `EmailService` existente. Configure o destinatário da imobiliária e as credenciais **antes de iniciar o backend**. Exemplo SMTP:
 
 ```powershell
