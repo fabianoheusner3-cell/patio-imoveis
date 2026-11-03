@@ -1,4 +1,4 @@
-# Morada — imobiliária com React + Vite e API Spring Boot
+# Pátio — imobiliária com React + Vite e API Spring Boot
 
 Projeto da disciplina **Programação Web IV** — Fabiano Heusner.
 

@@ -8,7 +8,7 @@ export class ApiError extends Error {
 export async function api(path, options = {}) {
   const { body, ...rest } = options;
   const headers = new Headers(rest.headers);
-  const token = sessionStorage.getItem("morada-token");
+  const token = sessionStorage.getItem("patio-token");
   if (token && path !== "/auth/login")
     headers.set("Authorization", `Bearer ${token}`);
   if (body && !(body instanceof FormData))
@@ -37,7 +37,7 @@ export async function api(path, options = {}) {
       dados = await res.json();
     } catch {}
     if (res.status === 401 && path != "/auth/login") {
-      sessionStorage.removeItem("morada-token");
+      sessionStorage.removeItem("patio-token");
       window.dispatchEvent(new Event("sessao-expirada"));
     }
     const mensagens = {

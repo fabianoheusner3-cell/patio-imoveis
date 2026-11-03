@@ -18,3 +18,9 @@ Os testes de navegador fizeram chamadas à API local real e verificaram vitrine,
 Não foram enviados emails reais durante a validação. A pasta `target/surefire-reports/` contém os relatórios Java após executar os testes. O build React está em `frontend/dist/` após `npm.cmd run build`.
 
 O script `scripts/iniciar-gmail.ps1` teve a sintaxe validada pelo parser do PowerShell. A senha de app real deve ser digitada pelo usuário ao executar `iniciar-gmail.cmd`; ela não é armazenada no projeto. Consulte `GMAIL.md`.
+
+## Identidade Pátio Imóveis
+
+Nome, logotipo, tipografia, cores e composição da vitrine foram atualizados. A interface usa azul profundo, terracota e fundos claros; cards horizontais no computador e empilhados no celular. Nome do contrato PDF e documentação também atualizados.
+
+Após a alteração: build React concluído; quatro testes de navegador passaram; dois testes de negociação/contrato passaram. As versões de 1440 px e 390 px foram conferidas visualmente. Os dados de imóveis, usuários e negociações foram preservados.

@@ -1,4 +1,4 @@
-# Morada - React + Vite e Spring Boot
+# Pátio - React + Vite e Spring Boot
 
 Consulte [README-REACT.md](README-REACT.md) para executar a nova interface, configurar emails, testar e recriar os dados de demonstracao.
 

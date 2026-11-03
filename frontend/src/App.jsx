@@ -274,9 +274,14 @@ function Shell() {
       <header className="topbar">
         <Link to="/" className="brand">
           <span className="brand-mark">
-            <Home size={23} />
+            <span />
+            <span />
+            <span />
+            <span />
           </span>
-          morada<span className="brand-dot">.</span>
+          <span className="brand-name">
+            pátio<small>IMÓVEIS</small>
+          </span>
         </Link>
         <button
           className="mobile-toggle icon-btn"
@@ -393,7 +398,7 @@ function Shell() {
       )}
       <footer>
         <Link className="brand" to="/">
-          morada.
+          Pátio Imóveis
         </Link>
         <span>Um lugar para cada novo começo.</span>
         <span>Imobiliária · Panambi e região</span>
@@ -413,19 +418,19 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [notice]);
   const logout = () => {
-    sessionStorage.removeItem("morada-token");
+    sessionStorage.removeItem("patio-token");
     setUser(null);
     navigate("/login");
   };
   useEffect(() => {
     let active = true;
-    if (sessionStorage.getItem("morada-token"))
+    if (sessionStorage.getItem("patio-token"))
       api("/auth/me")
         .then((u) => {
           if (active) setUser(u);
         })
         .catch(() => {
-          sessionStorage.removeItem("morada-token");
+          sessionStorage.removeItem("patio-token");
         })
         .finally(() => {
           if (active) setLoading(false);
@@ -468,11 +473,11 @@ function Login() {
   return (
     <main className="login-page">
       <section className="login-story">
-        <p className="eyebrow">BEM-VINDO À MORADA</p>
+        <p className="eyebrow">BEM-VINDO À PÁTIO</p>
         <h1>
-          Seu espaço.
+          Novos planos.
           <br />
-          Suas possibilidades.
+          Um lugar para realizar.
         </h1>
         <p>
           Acompanhe suas propostas, guarde seus imóveis favoritos e dê o próximo
@@ -494,7 +499,7 @@ function Login() {
               method: "POST",
               body: dados,
             });
-            sessionStorage.setItem("morada-token", token.token);
+            sessionStorage.setItem("patio-token", token.token);
             try {
               const me = await api("/auth/me");
               setUser(me);
@@ -502,7 +507,7 @@ function Login() {
                 replace: true,
               });
             } catch (e) {
-              sessionStorage.removeItem("morada-token");
+              sessionStorage.removeItem("patio-token");
               throw e;
             }
           }}
@@ -704,19 +709,20 @@ function Catalog() {
       <section className="hero">
         <div className="hero-content">
           <p className="eyebrow">
-            <span className="tiny-line" /> ENCONTRE SEU LUGAR NO MUNDO
+            <span className="tiny-line" /> PÁTIO IMÓVEIS · PANAMBI, RS
           </p>
           <h1>
-            Um novo endereço.
+            O seu lugar está
             <br />
-            Um novo <em>começo.</em>
+            <em>mais perto.</em>
           </h1>
           <p>
-            Espaços para viver seus planos. Encontre o imóvel
-            <br className="desktop" /> que combina com a sua próxima história.
+            Casas, apartamentos e espaços para viver Panambi do seu jeito.
+            <br className="desktop" /> Explore, compare e encontre o que faz
+            sentido para você.
           </p>
           <a className="hero-link" href="#vitrine">
-            Explore os imóveis <ArrowDown />
+            Encontre seu próximo endereço <ArrowRight size={18} />
           </a>
           <div className="hero-meta">
             <span>
@@ -730,29 +736,27 @@ function Catalog() {
           </div>
         </div>
         <div className="hero-visual">
-          <div className="house-scene">
-            <div className="sun" />
-            <div className="house-back" />
-            <div className="house-front">
-              <div className="window" />
-              <div className="door" />
-            </div>
-            <div className="garden" />
-            <div className="tree tree-one" />
-            <div className="tree tree-two" />
-          </div>
+          <img
+            className="hero-photo"
+            src="/demo/imovel-1.jpg"
+            alt="Arquitetura residencial contemporânea com jardim"
+          />
           <div className="visual-caption">
-            <span>O lugar certo para chamar de lar.</span>
+            <span>
+              Bons espaços.
+              <br />
+              <strong>Novas perspectivas.</strong>
+            </span>
             <ArrowUpRight size={22} />
           </div>
-          <span className="visual-number">01 / MORAR BEM</span>
+          <span className="visual-number">PÁTIO / VIVER BEM</span>
         </div>
       </section>
       <section className="catalog section" id="vitrine">
         <div className="section-head">
           <div>
-            <p className="eyebrow">ESCOLHIDOS PARA VOCÊ</p>
-            <h2>Encontre sua próxima morada</h2>
+            <p className="eyebrow">COMPRAR OU ALUGAR</p>
+            <h2>Explore os imóveis</h2>
           </div>
           <span className="catalog-count">
             {all.loading
@@ -1462,7 +1466,7 @@ function Contracts({ admin = false }) {
 }
 function Dashboard() {
   const state = useData(() => api("/painel"));
-  const colors = ["#214f43", "#cb9a65", "#789887", "#d3bd9c", "#8d818d"];
+  const colors = ["#1c3449", "#b76e52", "#7b98ad", "#d5b49f", "#8a7a94"];
   return (
     <>
       <PageHeading

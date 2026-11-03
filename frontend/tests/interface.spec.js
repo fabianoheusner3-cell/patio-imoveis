@@ -4,7 +4,7 @@ test("vitrine, login incorreto e rota privada sem sessão", async ({ page }) => 
   page.on("pageerror", (e) => erros.push(e.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Encontre sua próxima morada" }),
+    page.getByRole("heading", { name: "Explore os imóveis" }),
   ).toBeVisible();
   await expect(page.getByText("Carregando…", { exact: true })).toHaveCount(0);
   await page.goto("/admin/usuarios");
@@ -63,7 +63,7 @@ test("layout de celular sem rolagem horizontal e menu funcional", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Encontre sua próxima morada" }),
+    page.getByRole("heading", { name: "Explore os imóveis" }),
   ).toBeVisible();
   expect(
     await page.evaluate(

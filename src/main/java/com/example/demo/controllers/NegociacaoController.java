@@ -44,7 +44,7 @@ public class NegociacaoController {
             var page=new PDPage();doc.addPage(page);
             try(var content=new PDPageContentStream(doc,page)) {
                 content.beginText();content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA),11);content.setLeading(22);content.newLineAtOffset(45,745);
-                var linhas=List.of("MORADA - CONTRATO DE "+o.getTipo(),"Contrato #"+id+" | Oferta #"+o.getId(),
+                var linhas=List.of("PATIO - CONTRATO DE "+o.getTipo(),"Contrato #"+id+" | Oferta #"+o.getId(),
                     "Cliente: "+o.getUsuario().getNome(),"Email: "+o.getUsuario().getEmail(),"Imovel #"+i.getId()+": "+i.getTitulo(),
                     "Endereco: "+Objects.toString(i.getEndereco(),"")+", "+Objects.toString(i.getNumero(),""),
                     "Valor acordado: R$ "+o.getValorProposto(),"Situacao: "+c.getStatus(),"Aprovacao: "+Objects.toString(c.getDataAprovacao(),"Aguardando"),

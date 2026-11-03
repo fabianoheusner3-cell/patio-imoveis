@@ -4,7 +4,7 @@ Conta escolhida: **fabianoheusner3@gmail.com**. Ela será o remetente das notifi
 
 ## 1. Criar a senha de app
 
-Ative a verificação em duas etapas na conta Google. Depois, entre em [Senhas de app](https://myaccount.google.com/apppasswords) e crie uma senha para o projeto **Morada Imobiliária**. O Google mostra uma senha de 16 caracteres.
+Ative a verificação em duas etapas na conta Google. Depois, entre em [Senhas de app](https://myaccount.google.com/apppasswords) e crie uma senha para o projeto **Pátio Imobiliária**. O Google mostra uma senha de 16 caracteres.
 
 Use essa senha de app, não a senha habitual do Gmail. Se a opção não estiver disponível, consulte as condições da conta e a [ajuda oficial do Google](https://support.google.com/mail/answer/185833?hl=pt-BR). Não envie a senha pelo chat e não a coloque no Git.
 
