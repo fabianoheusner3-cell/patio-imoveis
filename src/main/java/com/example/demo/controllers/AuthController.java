@@ -11,11 +11,13 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import com.example.demo.repositories.UsuarioRepository;
 import com.example.demo.services.UsuarioService;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 @RestController
-@RequestMapping("/auth")
 public class AuthController {
-    public record Login(String email, String senha) {}
+    /** "password" e o nome usado no exemplo do professor; "senha" continua aceito. */
+    public record Login(String email, @JsonAlias("password") String senha) {}
+    /** tipo traz o perfil (ADMIN ou USER), como na tabela do cronograma; perfil continua para o React. */
     public record Token(String token, String tipo, long expiraEm, String perfil, String nome) {}
     private final UsuarioRepository usuarios;
     private final PasswordEncoder passwords;
@@ -28,22 +30,25 @@ public class AuthController {
         if (validade <= 0) throw new IllegalArgumentException("Validade do JWT deve ser positiva.");
         this.dummyHash = passwords.encode(UUID.randomUUID().toString());
     }
-    @GetMapping("/me") public com.example.demo.models.UsuarioModel me(org.springframework.security.core.Authentication auth) {
+    @GetMapping("/auth/me") public com.example.demo.models.UsuarioModel me(org.springframework.security.core.Authentication auth) {
         return usuarios.findById(Long.valueOf(auth.getName())).orElseThrow();
     }
-    @PostMapping("/login") public Token login(@RequestBody Login dados) {
+    // /public/login segue a tabela do cronograma; /auth/login continua sendo usado pelo React.
+    @PostMapping({"/auth/login", "/public/login"}) public Token login(@RequestBody Login dados) {
         var usuario = usuarios.findByEmail(UsuarioService.normalizarEmail(dados.email()));
         boolean senhaValida = dados.senha() != null && passwords.matches(dados.senha(),
             usuario.map(u -> u.getSenha()).orElse(dummyHash));
         if (usuario.isEmpty() || !senhaValida)
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Email ou senha invalidos.");
         var u = usuario.get();
+        String perfil = u.getPerfil().name();
         var agora = Instant.now();
+        // role define as permissoes; tipo repete o perfil para leitura no jwt.io, como pede o cronograma.
         var claims = JwtClaimsSet.builder().issuer("bairro-pageable").subject(u.getId().toString())
             .issuedAt(agora).expiresAt(agora.plusSeconds(validade)).id(UUID.randomUUID().toString())
-            .claim("role", u.getPerfil().name()).build();
+            .claim("role", perfil).claim("tipo", perfil).build();
         String token = encoder.encode(JwtEncoderParameters.from(
             JwsHeader.with(MacAlgorithm.HS256).type("JWT").build(), claims)).getTokenValue();
-        return new Token(token, "Bearer", validade, u.getPerfil().name(), u.getNome());
+        return new Token(token, perfil, validade, perfil, u.getNome());
     }
 }

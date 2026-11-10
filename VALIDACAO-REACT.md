@@ -24,3 +24,16 @@ O script `scripts/iniciar-gmail.ps1` teve a sintaxe validada pelo parser do Powe
 Nome, logotipo, tipografia, cores e composição da vitrine foram atualizados. A interface usa azul profundo, terracota e fundos claros; cards horizontais no computador e empilhados no celular. Nome do contrato PDF e documentação também atualizados.
 
 Após a alteração: build React concluído; quatro testes de navegador passaram; dois testes de negociação/contrato passaram. As versões de 1440 px e 390 px foram conferidas visualmente. Os dados de imóveis, usuários e negociações foram preservados.
+
+# Validação — 10/11/2026 (Aula 1 do cronograma)
+
+| Verificação | Resultado |
+|---|---|
+| Tabela de verificação do professor, com `/public/login`, `/users`, `password` e `tipo` | 9 de 9 conforme o esperado, com o backend em execução |
+| Rotas usadas pelo React (`/auth/login`, `/auth/me`, `/usuarios`) | Funcionando, sem alteração |
+| Suíte de testes Java | 21 testes, 0 falhas, 0 erros (inclui `CronogramaApiTest`) |
+| Build de produção React + Vite | Concluído, sem erros |
+| Listagem de imóveis pelo React | `GET /api/imoveis` pelo proxy do Vite retornou os imóveis do backend |
+| GitHub | Publicado em <https://github.com/fabianoheusner3-cell/patio-imoveis> |
+
+As verificações usaram banco em memória; o banco de `data/` não foi alterado.

@@ -8,8 +8,9 @@ import com.example.demo.models.UsuarioModel;
 import com.example.demo.services.UsuarioService;
 import com.example.demo.services.UsuarioService.DadosUsuario;
 
+// /users segue a tabela do cronograma; /usuarios continua sendo usado pelo React.
 @RestController
-@RequestMapping("/usuarios")
+@RequestMapping({"/usuarios", "/users"})
 public class UsuarioController {
     private final UsuarioService service;
     public UsuarioController(UsuarioService service) { this.service = service; }

@@ -10,10 +10,13 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.dao.DataIntegrityViolationException;
 import com.example.demo.models.UsuarioModel;
 import com.example.demo.repositories.UsuarioRepository;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 @Service
 public class UsuarioService {
-    public record DadosUsuario(String nome, String email, String senha, UsuarioModel.Perfil perfil) {}
+    /** Aceita tambem os nomes do exemplo do professor: password e tipo (ou role). */
+    public record DadosUsuario(String nome, String email, @JsonAlias("password") String senha,
+            @JsonAlias({"tipo", "role"}) UsuarioModel.Perfil perfil) {}
     private final UsuarioRepository repository;
     private final PasswordEncoder encoder;
     public UsuarioService(UsuarioRepository repository, PasswordEncoder encoder) {

@@ -82,7 +82,7 @@ public class SecurityConfig {
             .requestCache(cache -> cache.disable())
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login", "/public/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.js", "/*.css", "/favicon.ico",
                     "/imoveis", "/imoveis/**", "/tipos-imoveis", "/tipos-imoveis/**",
                     "/bairros", "/bairros/**", "/fotos/**").permitAll()
@@ -92,7 +92,7 @@ public class SecurityConfig {
                 .requestMatchers("/painel", "/ofertas/**", "/contratos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/imoveis/*/status").authenticated()
                 .requestMatchers(HttpMethod.POST, "/imoveis/sabermais/*", "/contato/*").permitAll()
-                .requestMatchers("/usuarios", "/usuarios/**", "/imoveis", "/imoveis/**",
+                .requestMatchers("/usuarios", "/usuarios/**", "/users", "/users/**", "/imoveis", "/imoveis/**",
                     "/tipos-imoveis", "/tipos-imoveis/**", "/bairros", "/bairros/**", "/fotos", "/fotos/**").hasRole("ADMIN")
                 .anyRequest().denyAll())
             .exceptionHandling(errors -> errors.authenticationEntryPoint(unauthorized).accessDeniedHandler(forbidden))

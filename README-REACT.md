@@ -108,6 +108,19 @@ O formulário público envia o interesse **à imobiliária**, incluindo código,
 
 Os CRUDs existentes continuam em `/imoveis`, `/bairros`, `/tipos-imoveis`, `/fotos` e `/usuarios`. A edição/exclusão de bairros agora também está implementada. As leituras de tipos inexistentes passaram a retornar 404.
 
+## Compatibilidade com a tabela do cronograma
+
+As rotas e os campos usados pelo professor também são aceitos. As rotas originais continuam valendo e são as usadas pelo React.
+
+| Cronograma | Equivale a | Detalhes |
+|---|---|---|
+| POST `/public/login` com `email` e `password` | POST `/auth/login` com `email` e `senha` | Os dois nomes de campo são aceitos nas duas rotas |
+| `/users` (GET, POST, PUT, DELETE) | `/usuarios` | Somente ADMIN. O perfil pode vir em `tipo`, `role` ou `perfil`; a senha, em `password` ou `senha` |
+| `tipo` na resposta do login | `perfil` | `ADMIN` ou `USER` (antes, `tipo` trazia `Bearer`); os dois campos são enviados |
+| claim `tipo` no JWT | claim `role` | Mesmo valor; `role` continua definindo as permissões |
+
+`CronogramaApiTest` reproduz as nove verificações da tabela com essas rotas.
+
 ## Segurança e erros
 
 O cliente centraliza HTTP em `frontend/src/api.js`. Requisições autenticadas levam `Authorization: Bearer <token>`. O login envia somente email e senha, sem reaproveitar token expirado. O token fica no `sessionStorage` e é removido no logout e em respostas 401; o usuário é encaminhado ao login. Respostas 403 mostram acesso negado; 409 mostram a mensagem da regra de negócio; 404 indicam item não encontrado. Erros de rede e de email também recebem mensagens legíveis.
@@ -131,12 +144,12 @@ npm.cmd exec -- playwright test
 
 Os testes de navegador exigem os dois servidores ligados e os dados opcionais de demonstração. A configuração usa o Chrome instalado em `C:/Program Files/Google/Chrome/Application/chrome.exe`. Em outra máquina, ajuste `playwright.config.js` ou instale o Chromium do Playwright e remova `executablePath`.
 
-Os testes Java cobrem autenticação, autorização, CRUDs, isolamento entre clientes, favoritos únicos, proposta duplicada, aceite, contrato/PDF, falha e sucesso de notificação, assinatura, cancelamento e aceite concorrente. Os testes de navegador cobrem login, rota privada, validação, painel, edição/exclusão de bairros, favoritos, filtros, paginação, detalhe e responsividade.
+Os testes Java cobrem a tabela de verificação do cronograma (`CronogramaApiTest`), autenticação, autorização, CRUDs, isolamento entre clientes, favoritos únicos, proposta duplicada, aceite, contrato/PDF, falha e sucesso de notificação, assinatura, cancelamento e aceite concorrente. Os testes de navegador cobrem login, rota privada, validação, painel, edição/exclusão de bairros, favoritos, filtros, paginação, detalhe e responsividade.
 
 ## Git e entrega
 
 O repositório local inclui frontend, backend, documentação e fotos ilustrativas. Banco de dados, uploads gerados, dependências, logs, build e credenciais ficam fora do Git/ZIP. Ao extrair, execute o setup acima; os dados de demonstração são recriados pelo script opcional.
 
-O primeiro commit é preparado localmente. Para publicar no GitHub, conecte sua conta ou crie um repositório vazio e configure o remoto autenticado. Não há URL de repositório remoto até concluir esse passo. Para manter a aplicação na internet, será necessário hospedar o backend Java e definir o proxy `/api` do frontend para ele; o setup desta entrega é local.
+Repositório no GitHub: <https://github.com/fabianoheusner3-cell/patio-imoveis> (branch `main`). Para manter a aplicação na internet, será necessário hospedar o backend Java e definir o proxy `/api` do frontend para ele; o setup desta entrega é local.
 
 Referências: [React](https://react.dev/learn/build-a-react-app-from-scratch), [Vite](https://vite.dev/guide/), [Spring Security JWT](https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html).
