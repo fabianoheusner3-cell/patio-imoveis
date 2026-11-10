@@ -385,6 +385,7 @@ function Shell() {
           <Route path="/" element={<Catalog />} />
           <Route path="/imoveis/:id" element={<Detail />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
           <Route
             path="*"
             element={
@@ -526,7 +527,100 @@ function Login() {
             autoComplete="current-password"
           />
           <p className="hint">
-            Ainda não tem acesso? Solicite seu cadastro à imobiliária.
+            Ainda não tem conta? <Link to="/cadastro">Cadastre-se aqui</Link>
+          </p>
+        </Form>
+        <Link className="back-link" to="/">
+          ← Voltar para os imóveis
+        </Link>
+      </section>
+    </main>
+  );
+}
+// Entra com o token recebido e manda o usuário para a área do seu perfil.
+async function entrarComToken(token, setUser, navigate) {
+  sessionStorage.setItem("patio-token", token);
+  try {
+    const me = await api("/auth/me");
+    setUser(me);
+    navigate(me.perfil === "ADMIN" ? "/admin" : "/cliente", { replace: true });
+  } catch (e) {
+    sessionStorage.removeItem("patio-token");
+    throw e;
+  }
+}
+function Cadastro() {
+  const { user, setUser } = useContext(Auth),
+    navigate = useNavigate(),
+    notify = useContext(Notice);
+  if (user)
+    return (
+      <Navigate to={user.perfil === "ADMIN" ? "/admin" : "/cliente"} replace />
+    );
+  return (
+    <main className="login-page">
+      <section className="login-story">
+        <p className="eyebrow">CRIE SUA CONTA</p>
+        <h1>
+          Seu novo endereço
+          <br />
+          começa aqui.
+        </h1>
+        <p>
+          Com a conta de cliente você guarda favoritos, faz ofertas e
+          acompanha seus contratos.
+        </p>
+        <div className="login-house">
+          <Home size={140} strokeWidth={0.7} />
+        </div>
+        <span>Mais perto do seu novo endereço.</span>
+      </section>
+      <section className="login-form">
+        <p className="eyebrow">CADASTRO DE CLIENTE</p>
+        <h2>Vamos começar?</h2>
+        <p className="muted">Preencha seus dados para criar a conta.</p>
+        <Form
+          submit="Criar minha conta →"
+          onSubmit={async (dados) => {
+            if (dados.senha !== dados.confirmar)
+              throw new Error("As senhas não conferem.");
+            await api("/public/cadastro", {
+              method: "POST",
+              body: { nome: dados.nome, email: dados.email, senha: dados.senha },
+            });
+            const login = await api("/auth/login", {
+              method: "POST",
+              body: { email: dados.email, senha: dados.senha },
+            });
+            await entrarComToken(login.token, setUser, navigate);
+            notify("Conta criada. Bem-vindo à Pátio!");
+          }}
+        >
+          <Field name="nome" title="Nome" autoComplete="name" maxLength={150} />
+          <Field
+            name="email"
+            title="Email"
+            type="email"
+            autoComplete="email"
+            placeholder="voce@exemplo.com"
+          />
+          <Field
+            name="senha"
+            title="Senha"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            placeholder="Mínimo de 8 caracteres"
+          />
+          <Field
+            name="confirmar"
+            title="Confirmar senha"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+          />
+          <p className="hint">
+            Já tem conta? <Link to="/login">Entrar</Link>
           </p>
         </Form>
         <Link className="back-link" to="/">
@@ -619,12 +713,9 @@ function Card({ item, onFavorite, favorited = false, purpose }) {
     </article>
   );
 }
+const POR_PAGINA = 6;
 function Catalog() {
-  const all = useData(() =>
-    Promise.all([api("/imoveis"), api("/bairros")]).then(
-      ([items, bairros]) => ({ items, bairros }),
-    ),
-  );
+  const bairros = useData(() => api("/bairros"));
   const { user } = useContext(Auth),
     navigate = useNavigate(),
     notify = useContext(Notice);
@@ -645,43 +736,31 @@ function Catalog() {
     setFilter((x) => ({ ...x, [key]: value }));
     setPage(0);
   };
-  let items = (all.data?.items || [])
-    .filter(available)
-    .filter((i) => !filter.bairro || String(i.bairro?.id) === filter.bairro)
-    .filter(
-      (i) =>
-        !filter.search ||
-        normalize(i.titulo + " " + i.cidade + " " + i.bairro?.nome).includes(
-          normalize(filter.search),
-        ),
-    )
-    .filter((i) => {
-      const prices =
-        filter.finalidade === "ALUGUEL"
-          ? [i.precoAluguel]
-          : filter.finalidade === "VENDA"
-            ? [i.precoVenda]
-            : [i.precoVenda, i.precoAluguel];
-      return prices.some(
-        (p) =>
-          p > 0 &&
-          (!filter.min || p >= Number(filter.min)) &&
-          (!filter.max || p <= Number(filter.max)),
-      );
-    });
-  const price = (i) =>
-    filter.finalidade === "ALUGUEL"
-      ? i.precoAluguel
-      : i.precoVenda || i.precoAluguel;
-  items.sort((a, b) =>
-    filter.sort === "menor"
-      ? price(a) - price(b)
-      : filter.sort === "maior"
-        ? price(b) - price(a)
-        : b.id - a.id,
-  );
-  const pages = Math.ceil(items.length / 6),
-    shown = items.slice(page * 6, page * 6 + 6);
+  // A busca por texto espera o usuário parar de digitar para não chamar a API a cada tecla.
+  const [busca, setBusca] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setBusca(filter.search.trim()), 350);
+    return () => clearTimeout(timer);
+  }, [filter.search]);
+  // Paginação, filtros e ordenação ficam no servidor (Pageable do Spring).
+  const params = new URLSearchParams({
+    vitrine: "true",
+    page: String(page),
+    size: String(POR_PAGINA),
+  });
+  if (filter.sort === "menor") params.set("sort", "preco,asc");
+  if (filter.sort === "maior") params.set("sort", "preco,desc");
+  if (filter.bairro) params.set("bairro", filter.bairro);
+  if (busca) params.set("busca", busca);
+  if (filter.finalidade) params.set("finalidade", filter.finalidade);
+  if (filter.min) params.set("min", filter.min);
+  if (filter.max) params.set("max", filter.max);
+  const query = params.toString();
+  const all = useData(() => api("/imoveis/imoveis-page?" + query), [query]);
+  // O Spring pode devolver os totais na raiz ou dentro de "page", conforme a versão.
+  const shown = all.data?.content || [],
+    total = all.data?.page?.totalElements ?? all.data?.totalElements ?? 0,
+    pages = all.data?.page?.totalPages ?? all.data?.totalPages ?? 0;
   async function favorite(i) {
     if (!user) {
       navigate("/login");
@@ -761,7 +840,7 @@ function Catalog() {
           <span className="catalog-count">
             {all.loading
               ? "Buscando imóveis…"
-              : `${items.length} imóveis disponíveis`}
+              : `${total} imóveis disponíveis`}
           </span>
         </div>
         <div className="filters">
@@ -780,7 +859,7 @@ function Catalog() {
             onChange={(e) => change("bairro", e.target.value)}
           >
             <option value="">Todos os bairros</option>
-            {all.data?.bairros.map((b) => (
+            {(bairros.data || []).map((b) => (
               <option value={b.id} key={b.id}>
                 {b.nome}
               </option>
@@ -850,7 +929,7 @@ function Catalog() {
               O preço mínimo deve ser menor ou igual ao máximo.
             </p>
           )}
-        <State state={all} empty={!items.length}>
+        <State state={all} empty={!shown.length}>
           <div className="property-grid">
             {shown.map((i) => (
               <Card

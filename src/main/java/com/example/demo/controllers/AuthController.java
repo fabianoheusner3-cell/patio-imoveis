@@ -20,6 +20,7 @@ public class AuthController {
     /** tipo traz o perfil (ADMIN ou USER), como na tabela do cronograma; perfil continua para o React. */
     public record Token(String token, String tipo, long expiraEm, String perfil, String nome) {}
     private final UsuarioRepository usuarios;
+    @org.springframework.beans.factory.annotation.Autowired private UsuarioService usuarioService;
     private final PasswordEncoder passwords;
     private final JwtEncoder encoder;
     private final long validade;
@@ -29,6 +30,15 @@ public class AuthController {
         this.usuarios = usuarios; this.passwords = passwords; this.encoder = encoder; this.validade = validade;
         if (validade <= 0) throw new IllegalArgumentException("Validade do JWT deve ser positiva.");
         this.dummyHash = passwords.encode(UUID.randomUUID().toString());
+    }
+    /** Cadastro feito pelo proprio cliente na tela do React. */
+    public record Cadastro(String nome, String email, @JsonAlias("password") String senha) {}
+    // Publico, mas sempre cria perfil USER: um visitante nunca consegue se cadastrar como ADMIN.
+    @PostMapping("/public/cadastro")
+    public org.springframework.http.ResponseEntity<com.example.demo.models.UsuarioModel> cadastrar(@RequestBody Cadastro dados) {
+        var usuario = usuarioService.salvar(null, new UsuarioService.DadosUsuario(
+            dados.nome(), dados.email(), dados.senha(), com.example.demo.models.UsuarioModel.Perfil.USER));
+        return org.springframework.http.ResponseEntity.created(java.net.URI.create("/usuarios/" + usuario.getId())).body(usuario);
     }
     @GetMapping("/auth/me") public com.example.demo.models.UsuarioModel me(org.springframework.security.core.Authentication auth) {
         return usuarios.findById(Long.valueOf(auth.getName())).orElseThrow();

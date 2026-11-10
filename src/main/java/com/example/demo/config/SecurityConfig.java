@@ -82,7 +82,7 @@ public class SecurityConfig {
             .requestCache(cache -> cache.disable())
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
-                .requestMatchers(HttpMethod.POST, "/auth/login", "/public/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/login", "/public/login", "/public/cadastro").permitAll()
                 .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.js", "/*.css", "/favicon.ico",
                     "/imoveis", "/imoveis/**", "/tipos-imoveis", "/tipos-imoveis/**",
                     "/bairros", "/bairros/**", "/fotos/**").permitAll()

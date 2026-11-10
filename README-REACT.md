@@ -51,7 +51,7 @@ O script adiciona oito imóveis ilustrativos, tipos, bairros, fotos e o cliente 
 | Painel | Totais de imóveis disponíveis, ofertas pendentes e contratos aguardando assinatura; gráficos de imóveis por bairro/finalidade e ofertas por situação |
 | Interface | Layout responsivo, menus por perfil, rotas protegidas, carregamento/erro/sem resultados, confirmações antes de excluir e validações de formulário |
 
-A vitrine usa os registros retornados por `GET /imoveis`; filtros, ordenação e paginação são feitos no React. Isso simplifica o trabalho da disciplina; em bases grandes, deve-se migrar essa consulta para paginação e filtros no servidor.
+A vitrine usa `GET /imoveis/imoveis-page?vitrine=true` com `Pageable`: paginação (`page`, `size`), ordenação (`sort=preco,asc|desc`) e filtros (`bairro`, `busca`, `finalidade`, `min`, `max`) são feitos no servidor e só aparecem imóveis disponíveis. Sem `vitrine=true`, a rota continua como no exemplo da aula.
 
 ## Regras de negócio e integridade
 

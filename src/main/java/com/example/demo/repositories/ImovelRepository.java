@@ -25,4 +25,26 @@ public interface ImovelRepository extends JpaRepository<ImovelModel, Integer> {
     @Override
     @EntityGraph(attributePaths = {"tipoImovel", "bairro"})
     Optional<ImovelModel> findById(Integer id);
+
+    // Vitrine paginada no servidor: so imoveis disponiveis, com os filtros opcionais da tela.
+    // Sem finalidade, o preco minimo/maximo vale para venda OU aluguel.
+    @EntityGraph(attributePaths = {"tipoImovel", "bairro"})
+    @org.springframework.data.jpa.repository.Query("""
+            select i from ImovelModel i left join i.bairro b
+            where lower(i.status) in ('disponível', 'disponivel')
+              and (:bairro is null or b.id = :bairro)
+              and lower(concat(coalesce(i.titulo, ''), ' ', coalesce(i.cidade, ''), ' ', coalesce(b.nome, '')))
+                  like lower(concat('%', :busca, '%'))
+              and ((:finalidade <> 'ALUGUEL' and i.precoVenda > 0
+                    and (:min is null or i.precoVenda >= :min) and (:max is null or i.precoVenda <= :max))
+                or (:finalidade <> 'VENDA' and i.precoAluguel > 0
+                    and (:min is null or i.precoAluguel >= :min) and (:max is null or i.precoAluguel <= :max)))
+            """)
+    Page<ImovelModel> buscarVitrine(
+            @org.springframework.data.repository.query.Param("bairro") Integer bairro,
+            @org.springframework.data.repository.query.Param("busca") String busca,
+            @org.springframework.data.repository.query.Param("finalidade") String finalidade,
+            @org.springframework.data.repository.query.Param("min") java.math.BigDecimal min,
+            @org.springframework.data.repository.query.Param("max") java.math.BigDecimal max,
+            Pageable pageable);
 }

@@ -29,6 +29,28 @@ public class ImovelService {
     }
     public List<ImovelModel> getAll() { return repository.findAll(); }
     public Page<ImovelModel> getAll(Pageable pageable) { return repository.findAll(pageable); }
+
+    // Filtros da vitrine. "sort=preco,asc|desc" ordena pelo preco da finalidade escolhida
+    // (sem finalidade: venda, ou aluguel quando o imovel so e alugado).
+    public Page<ImovelModel> vitrine(Integer bairro, String busca, String finalidade,
+            java.math.BigDecimal min, java.math.BigDecimal max, Pageable pageable) {
+        String fin = finalidade == null ? "" : finalidade.trim().toUpperCase();
+        var precoOrdem = pageable.getSort().getOrderFor("preco");
+        org.springframework.data.domain.Sort sort;
+        if (precoOrdem != null) {
+            String expressao = fin.equals("ALUGUEL") ? "i.precoAluguel"
+                    : fin.equals("VENDA") ? "i.precoVenda"
+                    : "coalesce(nullif(i.precoVenda, 0), i.precoAluguel)";
+            sort = org.springframework.data.jpa.domain.JpaSort.unsafe(precoOrdem.getDirection(), expressao)
+                    .and(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id"));
+        } else if (pageable.getSort().isSorted()) {
+            sort = pageable.getSort();
+        } else {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "id");
+        }
+        var pagina = org.springframework.data.domain.PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        return repository.buscarVitrine(bairro, busca == null ? "" : busca.trim(), fin, min, max, pagina);
+    }
     public ImovelModel find(Integer id) {
         return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Imóvel não encontrado."));
     }

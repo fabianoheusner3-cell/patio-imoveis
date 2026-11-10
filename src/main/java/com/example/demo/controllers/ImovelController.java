@@ -90,7 +90,17 @@ public class ImovelController {
     @GetMapping
     public List<ImovelModel> getAll() { return service.getAll(); }
     @GetMapping("/imoveis-page")
-    public Page<ImovelModel> getPage(Pageable pageable) { return service.getAll(pageable); }
+    public Page<ImovelModel> getPage(Pageable pageable,
+            @RequestParam(defaultValue = "false") boolean vitrine,
+            @RequestParam(required = false) Integer bairro,
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) String finalidade,
+            @RequestParam(required = false) java.math.BigDecimal min,
+            @RequestParam(required = false) java.math.BigDecimal max) {
+        // Sem "vitrine=true" a rota continua igual ao exemplo da aula (todos os imoveis paginados).
+        if (!vitrine) return service.getAll(pageable);
+        return service.vitrine(bairro, busca, finalidade, min, max, pageable);
+    }
     @GetMapping("/{id}")
     public ImovelModel find(@PathVariable Integer id) { return service.find(id); }
     @PostMapping

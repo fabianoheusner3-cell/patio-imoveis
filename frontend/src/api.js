@@ -53,9 +53,15 @@ export async function api(path, options = {}) {
       503: dados.mensagem || "Serviço temporariamente indisponível.",
       502: dados.mensagem || "O serviço de email está indisponível.",
     };
+    const erroServidor =
+      path === "/auth/login"
+        ? "Erro no servidor ao tentar entrar. Seus dados podem estar certos; tente novamente em instantes."
+        : "Erro no servidor. Tente novamente em instantes.";
     throw new ApiError(
       mensagens[res.status] ||
-        "Não foi possível concluir a operação. Tente novamente.",
+        (res.status >= 500
+          ? erroServidor
+          : "Não foi possível concluir a operação. Tente novamente."),
       res.status,
     );
   }
