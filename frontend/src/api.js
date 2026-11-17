@@ -5,12 +5,14 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
+// silencioso: true → um 401 só apaga o token, sem mandar para o login (usado ao abrir o site).
 export async function api(path, options = {}) {
-  const { body, ...rest } = options;
+  const { body, silencioso = false, ...rest } = options;
   const headers = new Headers(rest.headers);
   const token = sessionStorage.getItem("patio-token");
-  if (token && path !== "/auth/login")
-    headers.set("Authorization", `Bearer ${token}`);
+  // Login e cadastro são públicos: um token antigo guardado no navegador não pode atrapalhar.
+  const publica = path === "/auth/login" || path.startsWith("/public/");
+  if (token && !publica) headers.set("Authorization", `Bearer ${token}`);
   if (body && !(body instanceof FormData))
     headers.set("Content-Type", "application/json");
   let res;
@@ -36,9 +38,9 @@ export async function api(path, options = {}) {
     try {
       dados = await res.json();
     } catch {}
-    if (res.status === 401 && path != "/auth/login") {
+    if (res.status === 401 && !publica) {
       sessionStorage.removeItem("patio-token");
-      window.dispatchEvent(new Event("sessao-expirada"));
+      if (!silencioso) window.dispatchEvent(new Event("sessao-expirada"));
     }
     const mensagens = {
       401:

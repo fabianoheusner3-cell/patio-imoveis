@@ -48,6 +48,7 @@ import {
   Field,
   PageHeading,
   Pagination,
+  EMAIL_COMPLETO,
 } from "./ui";
 import { Offers, Contracts, OfertaModal } from "./negociacao";
 import { AdminDashboard, CorretorDashboard, ClienteResumo } from "./paineis";
@@ -294,8 +295,10 @@ export default function App() {
   };
   useEffect(() => {
     let active = true;
+    // Sessão guardada de antes: se o token não vale mais (o backend reiniciou, por exemplo),
+    // ele é descartado sem tirar a pessoa da página em que está (vitrine, cadastro...).
     if (sessionStorage.getItem("patio-token"))
-      api("/auth/me")
+      api("/auth/me", { silencioso: true })
         .then((u) => {
           if (active) setUser(u);
         })
@@ -468,6 +471,9 @@ function Cadastro() {
             type="email"
             autoComplete="email"
             placeholder="voce@exemplo.com"
+            maxLength={254}
+            pattern={EMAIL_COMPLETO}
+            dica="Use um email completo, como nome@exemplo.com"
           />
           <Field
             name="senha"
@@ -1449,6 +1455,8 @@ function Crud({ resource }) {
                         type="email"
                         value={editing.email}
                         maxLength="254"
+                        pattern={EMAIL_COMPLETO}
+                        dica="Use um email completo, como nome@exemplo.com"
                       />
                       <Field
                         name="senha"

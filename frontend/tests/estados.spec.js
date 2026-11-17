@@ -65,6 +65,35 @@ test("lista do cliente: sem conexão, nova tentativa e busca sem resultados", as
   ).toBeVisible();
 });
 
+test("cadastro: sessão antiga no navegador não atrapalha e email incompleto é barrado", async ({
+  page,
+}) => {
+  await page.goto("/");
+  // Token de uma execução anterior do backend (a chave do JWT muda a cada execução)
+  await page.evaluate(() =>
+    sessionStorage.setItem(
+      "patio-token",
+      "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.token-antigo",
+    ),
+  );
+  await page.goto("/cadastro");
+  await expect(page.getByRole("heading", { name: "Vamos começar?" })).toBeVisible();
+  await expect(page).toHaveURL(/\/cadastro$/);
+  const email = page.getByLabel("Email", { exact: true });
+  await page.getByLabel("Nome", { exact: true }).fill("Visitante Teste");
+  await email.fill("visitante@teste");
+  await page.getByLabel("Senha", { exact: true }).fill("Visitante123!");
+  await page.getByLabel("Confirmar senha", { exact: true }).fill("Visitante123!");
+  await page.getByRole("button", { name: /Criar minha conta/ }).click();
+  // O navegador barra o email sem ponto no domínio, como o servidor faria
+  expect(await email.evaluate((campo) => campo.validity.patternMismatch)).toBe(true);
+  await expect(page).toHaveURL(/\/cadastro$/);
+  await email.fill(`visitante${Date.now()}@example.com`);
+  await page.getByRole("button", { name: /Criar minha conta/ }).click();
+  await expect(page).toHaveURL(/\/cliente$/);
+  await expect(page.getByRole("status")).toContainText("Conta criada");
+});
+
 test("sessão expirada (401): apaga o token e volta para o login", async ({
   page,
 }) => {

@@ -43,7 +43,7 @@ As verificações usaram banco em memória; o banco de `data/` não foi alterado
 | Verificação | Resultado |
 |---|---|
 | Suíte de testes Java | 27 testes, 0 falhas, 0 erros. Novos: `PerfisPaineisApiTest` e `AjusteEnumsH2Test`; `NegociacaoApiTest` reescrito para o fluxo com corretor |
-| Testes no Chrome com Playwright | 8 testes, todos passaram em duas execuções seguidas no mesmo banco |
+| Testes no Chrome com Playwright | 9 testes, todos passaram (incluindo o cadastro com uma sessão antiga no navegador, corrigido depois do primeiro teste manual) |
 | Checkpoint no navegador (`fluxo.spec.js`) | Cliente envia oferta → corretor aceita e prepara → administrador aprova → cliente assina; o imóvel vendido sai da vitrine |
 | Estados de carregamento e erro (`estados.spec.js`) | Erro 500 com nova tentativa, carregando, sem conexão, lista vazia, acesso negado e sessão expirada (401) |
 | Build de produção React + Vite | Concluído, sem erros |

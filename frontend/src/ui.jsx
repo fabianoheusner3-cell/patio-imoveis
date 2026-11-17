@@ -16,6 +16,9 @@ export const Notice = createContext(null);
 export const homeFor = (perfil) =>
   ({ ADMIN: "/admin", CORRETOR: "/corretor" })[perfil] || "/cliente";
 
+// Mesma regra do servidor (UsuarioService): o navegador aceita "nome@dominio" sem ponto, o servidor não.
+export const EMAIL_COMPLETO = "[^\\s@]+@[^\\s@]+\\.[^\\s@]+";
+
 export function useData(loader, deps = []) {
   const [data, setData] = useState(null),
     [error, setError] = useState(""),
@@ -176,12 +179,14 @@ export function Form({
   );
 }
 
+// title é o rótulo do campo; dica vira o texto de ajuda que o navegador mostra quando o formato está errado.
 export function Field({
   name,
   title,
   type = "text",
   value,
   required = true,
+  dica,
   children,
   ...rest
 }) {
@@ -215,6 +220,7 @@ export function Field({
           type={type}
           defaultValue={value ?? ""}
           required={required}
+          title={dica}
           {...rest}
         />
       )}

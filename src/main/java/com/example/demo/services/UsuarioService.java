@@ -32,22 +32,26 @@ public class UsuarioService {
     public UsuarioModel salvar(Long id, DadosUsuario dados) {
         var usuario = id == null ? new UsuarioModel() : buscar(id);
         String email = normalizarEmail(dados.email());
-        if (dados.nome() == null || dados.nome().isBlank() || dados.nome().length() > 150
-                || email.length() > 254 || !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+") || dados.perfil() == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe nome, email e perfil ADMIN, CORRETOR ou USER validos.");
+        // Uma mensagem por campo: o cadastro publico usa o mesmo metodo e o visitante nao escolhe perfil.
+        if (dados.nome() == null || dados.nome().isBlank() || dados.nome().length() > 150)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o nome, com até 150 caracteres.");
+        if (email.length() > 254 || !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe um email completo, como nome@exemplo.com.");
+        if (dados.perfil() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o perfil: ADMIN, CORRETOR ou USER.");
         if (id == null || dados.senha() != null) {
             if (dados.senha() == null || dados.senha().length() < 8
                     || dados.senha().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha deve ter ao menos 8 caracteres e no maximo 72 bytes.");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha deve ter ao menos 8 caracteres e no máximo 72 bytes.");
             usuario.setSenha(encoder.encode(dados.senha()));
         }
         var existente = repository.findByEmail(email);
         if (existente.isPresent() && !existente.get().getId().equals(id))
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este email já está cadastrado.");
         usuario.setNome(dados.nome().trim()); usuario.setEmail(email); usuario.setPerfil(dados.perfil());
         try { return repository.saveAndFlush(usuario); }
         catch (DataIntegrityViolationException ex) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este email já está cadastrado.");
         }
     }
     @Transactional public void excluir(Long id) { repository.delete(buscar(id)); }

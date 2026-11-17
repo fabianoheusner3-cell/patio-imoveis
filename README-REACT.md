@@ -158,7 +158,7 @@ As rotas e os campos usados pelo professor também são aceitos. As rotas origin
 
 ## Segurança e erros
 
-O cliente centraliza HTTP em `frontend/src/api.js`. Requisições autenticadas levam `Authorization: Bearer <token>`. O login envia somente email e senha, sem reaproveitar token expirado. O token fica no `sessionStorage` e é removido no logout e em respostas 401; o usuário é encaminhado ao login. Respostas 403 mostram acesso negado; 409 mostram a mensagem da regra de negócio; 404 indicam item não encontrado. Erros de rede e de email também recebem mensagens legíveis.
+O cliente centraliza HTTP em `frontend/src/api.js`. Requisições autenticadas levam `Authorization: Bearer <token>`. O login e o cadastro (`/auth/login` e `/public/*`) nunca enviam token, para que um token antigo não atrapalhe. O token fica no `sessionStorage` e é removido no logout e em respostas 401; durante o uso, o usuário é encaminhado ao login. Ao abrir o site com um token que não vale mais (o backend gera outra chave a cada execução), ele é descartado em silêncio e a pessoa continua na página em que estava, como o cadastro. Respostas 403 mostram acesso negado; 409 mostram a mensagem da regra de negócio; 404 indicam item não encontrado. Erros de rede e de email também recebem mensagens legíveis.
 
 O backend continua exigindo as permissões independentemente de qual tela ou ferramenta fez a chamada. Ocultar botões no React não substitui a autorização no servidor.
 
@@ -189,7 +189,7 @@ A configuração usa o Chrome instalado em `C:/Program Files/Google/Chrome/Appli
 
 Os testes Java (27) cobrem a tabela de verificação do cronograma (`CronogramaApiTest`), autenticação, autorização, CRUDs e, na negociação: o fluxo do checkpoint com as permissões de cada perfil, nenhuma etapa pulada, devolução ao corretor, aluguel com prazo, desistência e recusa com mensagem, falha e sucesso do email, assinatura, cancelamento e dois corretores aceitando ao mesmo tempo (`NegociacaoApiTest`); o perfil corretor criado pela tabela do professor, listas paginadas com filtros e os três painéis (`PerfisPaineisApiTest`); e a atualização de um banco antigo (`AjusteEnumsH2Test`).
 
-Os testes de navegador (8) cobrem login, rota privada, validação, painel, bairros, favoritos, filtros, paginação, detalhe e celular (`interface.spec.js`); o fluxo completo do checkpoint, inclusive a oferta duplicada e o nome errado na assinatura (`fluxo.spec.js`); e os estados de carregamento, erro 500 com nova tentativa, falta de conexão, lista vazia, acesso negado e sessão expirada (`estados.spec.js`). As falhas são simuladas interceptando a API com `page.route`.
+Os testes de navegador (9) cobrem login, rota privada, validação, painel, bairros, favoritos, filtros, paginação, detalhe e celular (`interface.spec.js`); o fluxo completo do checkpoint, inclusive a oferta duplicada e o nome errado na assinatura (`fluxo.spec.js`); e os estados de carregamento, erro 500 com nova tentativa, falta de conexão, lista vazia, acesso negado, sessão expirada e cadastro com uma sessão antiga no navegador (`estados.spec.js`). As falhas são simuladas interceptando a API com `page.route`.
 
 ## Git e entrega
 

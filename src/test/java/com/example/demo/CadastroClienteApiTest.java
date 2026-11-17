@@ -45,5 +45,19 @@ class CadastroClienteApiTest {
         assertEquals(409, repetido.statusCode(), repetido.body());
         assertEquals(400, post("/public/cadastro", "{\"nome\":\"Ana\",\"email\":\"ana@example.com\",\"senha\":\"123\"}", null).statusCode());
         assertEquals(400, post("/public/cadastro", "{\"nome\":\"\",\"email\":\"ana@example.com\",\"senha\":\"Senha123!\"}", null).statusCode());
+
+        // Email sem ponto no dominio (o navegador aceita, o servidor nao): a mensagem fala do email, nunca de perfil
+        var incompleto = post("/public/cadastro", "{\"nome\":\"Ana\",\"email\":\"ana@teste\",\"senha\":\"Senha123!\"}", null);
+        assertEquals(400, incompleto.statusCode(), incompleto.body());
+        String mensagem = JsonPath.read(incompleto.body(), "$.mensagem");
+        assertTrue(mensagem.contains("email completo"), mensagem);
+        assertFalse(mensagem.toLowerCase().contains("perfil"), mensagem);
+
+        // Um token antigo (de outra execucao do backend) nao atrapalha o cadastro quando nao e enviado;
+        // se for enviado, a API recusa com 401 - por isso o React nao manda token para /public/*
+        assertEquals(401, post("/public/cadastro",
+            "{\"nome\":\"Bia\",\"email\":\"bia@example.com\",\"senha\":\"Senha123!\"}", "token.antigo.invalido").statusCode());
+        assertEquals(201, post("/public/cadastro",
+            "{\"nome\":\"Bia\",\"email\":\"bia@example.com\",\"senha\":\"Senha123!\"}", null).statusCode());
     }
 }
