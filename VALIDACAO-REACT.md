@@ -37,3 +37,17 @@ Após a alteração: build React concluído; quatro testes de navegador passaram
 | GitHub | Publicado em <https://github.com/fabianoheusner3-cell/patio-imoveis> |
 
 As verificações usaram banco em memória; o banco de `data/` não foi alterado.
+
+# Validação — 17/11/2026 (Aula 3 do cronograma)
+
+| Verificação | Resultado |
+|---|---|
+| Suíte de testes Java | 27 testes, 0 falhas, 0 erros. Novos: `PerfisPaineisApiTest` e `AjusteEnumsH2Test`; `NegociacaoApiTest` reescrito para o fluxo com corretor |
+| Testes no Chrome com Playwright | 8 testes, todos passaram em duas execuções seguidas no mesmo banco |
+| Checkpoint no navegador (`fluxo.spec.js`) | Cliente envia oferta → corretor aceita e prepara → administrador aprova → cliente assina; o imóvel vendido sai da vitrine |
+| Estados de carregamento e erro (`estados.spec.js`) | Erro 500 com nova tentativa, carregando, sem conexão, lista vazia, acesso negado e sessão expirada (401) |
+| Build de produção React + Vite | Concluído, sem erros |
+| Banco criado antes da Aula 3 | Uma cópia do banco de `data/` foi aberta pela versão nova: perfil e situação do contrato aceitam os valores novos, as colunas novas foram criadas e usuários e imóveis foram preservados |
+| Painéis | Conferidos em capturas de 1440 px e 390 px, com dados em todas as etapas; sem rolagem horizontal |
+
+As verificações usaram banco em memória e uma cópia do banco; o banco de `data/` e a pasta `uploads/` não foram alterados.

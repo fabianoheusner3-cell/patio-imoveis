@@ -86,9 +86,17 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/", "/*.html", "/*.js", "/*.css", "/favicon.ico",
                     "/imoveis", "/imoveis/**", "/tipos-imoveis", "/tipos-imoveis/**",
                     "/bairros", "/bairros/**", "/fotos/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/auth/me", "/ofertas", "/contratos", "/contratos/*", "/contratos/*/pdf", "/favoritos").authenticated()
-                .requestMatchers(HttpMethod.POST, "/ofertas", "/contratos/*/assinar", "/favoritos/*").hasRole("USER")
+                // Leituras: cada perfil ve o que e seu (o servico filtra por cliente, corretor ou admin)
+                .requestMatchers(HttpMethod.GET, "/auth/me", "/ofertas", "/ofertas/ofertas-page", "/contratos",
+                    "/contratos/contratos-page", "/contratos/*", "/contratos/*/pdf", "/favoritos").authenticated()
+                // Cliente: envia e cancela ofertas, favorita e assina
+                .requestMatchers(HttpMethod.POST, "/ofertas", "/ofertas/*/cancelar", "/contratos/*/assinar", "/favoritos/*").hasRole("USER")
                 .requestMatchers(HttpMethod.DELETE, "/favoritos/*").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/painel/cliente").hasRole("USER")
+                // Corretor: aceita ou recusa ofertas e prepara o contrato
+                .requestMatchers(HttpMethod.POST, "/ofertas/*/aceitar", "/ofertas/*/recusar", "/contratos/*/preparar").hasRole("CORRETOR")
+                .requestMatchers(HttpMethod.GET, "/painel/corretor").hasRole("CORRETOR")
+                // Administrador: aprova, devolve, reenvia o aviso e cancela contratos
                 .requestMatchers("/painel", "/ofertas/**", "/contratos/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/imoveis/*/status").authenticated()
                 .requestMatchers(HttpMethod.POST, "/imoveis/sabermais/*", "/contato/*").permitAll()

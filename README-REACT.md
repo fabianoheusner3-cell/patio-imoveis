@@ -38,7 +38,7 @@ Com o backend ligado, execute na pasta que contém `pom.xml`:
 node scripts/dados-demo.mjs
 ```
 
-O script adiciona oito imóveis ilustrativos, tipos, bairros, fotos e o cliente `cliente@example.com`, senha `Cliente123!`. Ele pode ser repetido sem duplicar os mesmos títulos/contas e **não apaga os dados existentes**. Não execute em um ambiente de produção. As imagens são ilustrativas, não representam os imóveis descritos. Os arquivos estão em `frontend/public/demo/`; fontes: Unsplash, fotos `1600585154340-be6161a56a0c`, `1600047509807-ba8f99d2cdde`, `1600596542815-ffad4c1539a9` e `1564013799919-ab600027ffc6`.
+O script adiciona oito imóveis ilustrativos, tipos, bairros, fotos, o cliente `cliente@example.com` (senha `Cliente123!`) e o corretor `corretor@example.com` (senha `Corretor123!`). Ele pode ser repetido sem duplicar os mesmos títulos/contas e **não apaga os dados existentes**. Não execute em um ambiente de produção. As imagens são ilustrativas, não representam os imóveis descritos. Os arquivos estão em `frontend/public/demo/`; fontes: Unsplash, fotos `1600585154340-be6161a56a0c`, `1600047509807-ba8f99d2cdde`, `1600596542815-ffad4c1539a9` e `1564013799919-ab600027ffc6`.
 
 ## O que foi implementado
 
@@ -46,21 +46,28 @@ O script adiciona oito imóveis ilustrativos, tipos, bairros, fotos e o cliente 
 |---|---|
 | Pública | Vitrine em cards com fotos, tipo, bairro, cidade e preços; detalhes e galeria; consulta por bairro, finalidade, faixa de preço e busca textual; filtros combinados; ordenação por preço; paginação de seis itens; formulário de interesse preenchido com dados do imóvel |
 | Login | JWT, validações, mensagens amigáveis, redirecionamento por perfil e restauração da sessão via `/auth/me` |
-| Cliente | Fazer ofertas em imóveis disponíveis, consultar apenas as próprias ofertas, adicionar/listar/remover favoritos, listar contratos, baixar PDF, assinar contrato aprovado e enviado, sair |
-| Administrador | CRUD de imóveis, bairros, tipos e fotos; busca/edição/perfil/exclusão de usuários; proteção contra excluir a própria conta; ofertas com filtro e aceite/recusa; contratos com aprovação, envio, recusa, cancelamento e PDF |
-| Painel | Totais de imóveis disponíveis, ofertas pendentes e contratos aguardando assinatura; gráficos de imóveis por bairro/finalidade e ofertas por situação |
-| Interface | Layout responsivo, menus por perfil, rotas protegidas, carregamento/erro/sem resultados, confirmações antes de excluir e validações de formulário |
+| Cliente | Resumo com indicadores, gráfico e próximos passos; fazer ofertas pelo detalhe ou pelos favoritos; acompanhar e cancelar as próprias ofertas em aberto; favoritos; contratos com etapas, PDF e assinatura depois da aprovação |
+| Corretor | Painel com indicadores e gráficos; fila de ofertas com aceite ou recusa (com mensagem ao cliente); preparar o contrato (valor final, início, prazo e condições) e enviar para aprovação; corrigir contratos devolvidos |
+| Administrador | CRUD de imóveis, bairros, tipos e fotos; usuários com perfil cliente, corretor ou administrador; proteção contra excluir a própria conta; consulta de todas as ofertas; contratos: aprovar, devolver ao corretor com motivo, reenviar o email, cancelar e PDF |
+| Painéis | Um por perfil, com indicadores, lista de pendências e gráficos (etapas dos contratos, ofertas por situação, últimos seis meses, negócios por corretor, imóveis por bairro e finalidade). Cada gráfico tem “Ver tabela” com os mesmos números |
+| Listas | Ofertas e contratos com busca, filtro de situação e paginação no servidor (`Pageable`); os atalhos dos painéis abrem a lista já filtrada |
+| Interface | Layout responsivo, menus por perfil, rotas protegidas, carregamento/erro com nova tentativa/sem resultados, confirmações antes de ações importantes e validações de formulário |
 
 A vitrine usa `GET /imoveis/imoveis-page?vitrine=true` com `Pageable`: paginação (`page`, `size`), ordenação (`sort=preco,asc|desc`) e filtros (`bairro`, `busca`, `finalidade`, `min`, `max`) são feitos no servidor e só aparecem imóveis disponíveis. Sem `vitrine=true`, a rota continua como no exemplo da aula.
 
 ## Regras de negócio e integridade
 
+Fluxo da negociação (Aula 3): **cliente envia oferta → corretor aceita e prepara o contrato → administrador aprova → cliente assina**. O contrato passa pelas etapas `EM_PREPARACAO` → `AGUARDANDO_APROVACAO` → `AGUARDANDO_ASSINATURA` → `ASSINADO` (ou `CANCELADO`), e nenhuma etapa pode ser pulada.
+
 - Somente imóveis com status disponível recebem ofertas. Tipo, valor positivo e mensagem são validados no servidor; o preço cadastrado deve permitir aluguel ou venda conforme a oferta.
-- Um cliente não pode criar duas ofertas pendentes para o mesmo imóvel. Clientes diferentes podem criar propostas para ele.
-- Aceitar uma oferta reserva o imóvel, cria o contrato e coloca as demais ofertas pendentes em espera. O aceite é exclusivo de ADMIN.
-- Assinar exige titularidade, nome completo, confirmação de concordância, contrato aprovado e email de envio concluído. A assinatura marca o imóvel como alugado ou vendido e recusa as outras ofertas abertas.
-- Recusar/cancelar contrato cancela a oferta vinculada e devolve o imóvel ao status disponível. As propostas que estavam em espera permanecem em espera; o administrador pode aceitá-las depois de liberar o imóvel. Novas ofertas também são permitidas.
-- O bloqueio pessimista do imóvel serializa decisões concorrentes. Há um teste com dois aceites simultâneos: apenas um é concluído.
+- Um cliente não pode ter duas ofertas em aberto (pendente ou em espera) para o mesmo imóvel. Clientes diferentes podem criar propostas para ele. O cliente pode cancelar a própria oferta enquanto ela está em aberto.
+- O aceite e a recusa são exclusivos do CORRETOR. Aceitar reserva o imóvel, coloca as demais ofertas pendentes em espera e abre o contrato em preparação, com esse corretor como responsável. A recusa pode levar uma mensagem que o cliente vê.
+- Só o corretor responsável prepara o contrato: valor final positivo, data de início entre hoje e os próximos dois anos, prazo de 1 a 120 meses no aluguel e condições obrigatórias. Outro corretor não vê nem altera o contrato.
+- Só o ADMIN aprova ou devolve o contrato ao corretor, com o motivo do ajuste. Quem prepara não aprova.
+- A aprovação libera a assinatura e tenta avisar o cliente por email. Se o email falhar, o contrato continua aprovado e o cliente assina pela área de contratos; o administrador pode reenviar o aviso.
+- Assinar exige titularidade, o nome do cadastro e a confirmação de concordância. A assinatura marca o imóvel como alugado ou vendido e recusa as outras ofertas abertas, com uma resposta explicando o motivo.
+- Cancelar contrato (somente ADMIN) cancela a oferta vinculada e devolve o imóvel ao status disponível. As propostas que estavam em espera permanecem em espera; um corretor pode aceitá-las depois. Novas ofertas também são permitidas.
+- O bloqueio pessimista do imóvel serializa decisões concorrentes. Há um teste com dois corretores aceitando ofertas do mesmo imóvel ao mesmo tempo: apenas um aceite é concluído.
 - Não é possível editar manualmente imóvel/status com contrato ativo. Imóveis com histórico de ofertas não são excluídos para preservar a negociação; a API retorna 409. Exclusão de outros registros vinculados também recebe 409.
 - Favoritos possuem restrição única por cliente e imóvel. Os IDs de usuário são derivados do JWT, não de campos enviados pelo navegador.
 - Clientes não conseguem ler ou assinar contratos de terceiros. Senhas são armazenadas com BCrypt e não são serializadas pela API.
@@ -85,7 +92,7 @@ $env:FRONTEND_URL = 'http://localhost:5173'
 
 As variáveis SMTP acima são as utilizadas em `application.properties`; consulte esse arquivo para ajustar porta e TLS ao seu provedor. Também é possível manter `MAIL_TRANSPORT=api` com `MAILGUN_API_KEY` e `MAILGUN_DOMAIN`.
 
-O formulário público envia o interesse **à imobiliária**, incluindo código, tipo, bairro e valores. O envio de contrato notifica **o email do cliente** com o link da área de contratos, onde ele entra para baixar o PDF. Aprovar e enviar são ações separadas: se o email falhar, o contrato continua aprovado, sem marcar envio nem liberar assinatura. O administrador pode tentar novamente. As falhas de serviço são informadas na tela, sem expor credenciais.
+O formulário público envia o interesse **à imobiliária**, incluindo código, tipo, bairro e valores. Ao aprovar um contrato, a API avisa **o email do cliente** com o link da área de contratos, onde ele entra para baixar o PDF e assinar. O aviso não trava o fluxo: se o email falhar, o contrato continua aprovado e já pode ser assinado; a tela informa a falha e o administrador pode usar “Enviar email” para tentar de novo. As falhas de serviço são informadas na tela, sem expor credenciais.
 
 **Nenhuma credencial real de email faz parte da entrega.** O envio externo real precisa ser validado com as credenciais do seu provedor; nos testes automatizados o serviço de email é simulado.
 
@@ -95,18 +102,46 @@ O formulário público envia o interesse **à imobiliária**, incluindo código,
 |---|---|
 | GET `/auth/me` | Autenticado |
 | POST `/contato/{imovelId}` | Público |
-| GET `/ofertas` | Cliente vê as próprias; ADMIN vê todas; filtro `?status=PENDENTE` |
+| GET `/ofertas` | Cliente vê as próprias; corretor e ADMIN veem todas; filtro `?status=PENDENTE` |
+| GET `/ofertas/ofertas-page` | Igual, paginada (`Pageable`): `page`, `size`, `status` (uma ou várias separadas por vírgula, como `PENDENTE,EM_ESPERA`) e `busca` (imóvel, código, cliente ou email) |
 | POST `/ofertas` | USER; JSON: `imovelId`, `tipo` (`ALUGUEL`/`VENDA`), `valorProposto`, `mensagem` |
-| POST `/ofertas/{id}/aceitar` ou `/recusar` | ADMIN |
-| GET `/contratos` e `/contratos/{id}` | Titular ou ADMIN |
-| GET `/contratos/{id}/pdf` | Titular ou ADMIN |
-| POST `/contratos/{id}/aprovar`, `/enviar`, `/recusar`, `/cancelar` | ADMIN |
+| POST `/ofertas/{id}/cancelar` | USER dono da oferta, enquanto ela está em aberto |
+| POST `/ofertas/{id}/aceitar` e `/recusar` | CORRETOR; a recusa aceita o JSON opcional `motivo` |
+| GET `/contratos`, `/contratos/{id}` e `/contratos/{id}/pdf` | Titular, corretor responsável ou ADMIN |
+| GET `/contratos/contratos-page` | Igual, paginada: `page`, `size`, `status` e `busca` (imóvel, cliente, corretor ou código) |
+| POST `/contratos/{id}/preparar` | CORRETOR responsável; JSON: `valorFinal`, `dataInicio` (`AAAA-MM-DD`), `prazoMeses` (só aluguel), `condicoes` |
+| POST `/contratos/{id}/aprovar`, `/devolver` (JSON `motivo`), `/enviar`, `/cancelar` ou `/recusar` | ADMIN |
 | POST `/contratos/{id}/assinar` | Titular USER; JSON: `nome`, `concordo: true` |
 | GET `/favoritos` | Autenticado; retorna apenas os próprios |
 | POST/DELETE `/favoritos/{imovelId}` | USER |
-| GET `/painel` | ADMIN |
+| GET `/painel`, `/painel/corretor`, `/painel/cliente` | ADMIN, CORRETOR e USER, respectivamente |
 
 Os CRUDs existentes continuam em `/imoveis`, `/bairros`, `/tipos-imoveis`, `/fotos` e `/usuarios`. A edição/exclusão de bairros agora também está implementada. As leituras de tipos inexistentes passaram a retornar 404.
+
+## Aula 3 — perfis e checkpoint
+
+| Perfil | Área | O que faz |
+|---|---|---|
+| Cliente (`USER`) | `/cliente` | Resumo, minhas ofertas, favoritos e contratos; envia, cancela e acompanha ofertas; assina o contrato aprovado |
+| Corretor (`CORRETOR`) | `/corretor` | Painel, fila de ofertas e contratos; aceita ou recusa ofertas; prepara o contrato e envia para aprovação |
+| Administrador (`ADMIN`) | `/admin` | Painel geral e cadastros; cria corretores em Usuários; aprova ou devolve contratos, reenvia o aviso por email e cancela |
+
+O cadastro público (`/cadastro`) continua criando só clientes. Corretores são criados pelo administrador em **Usuários** (perfil “Corretor”) ou pela rota `/users` com `"tipo": "CORRETOR"`.
+
+### Roteiro para demonstrar o fluxo completo
+
+Com o backend, o frontend e os dados de demonstração ligados:
+
+1. **Cliente** (`cliente@example.com` / `Cliente123!`): abra um imóvel na vitrine, clique em **Fazer oferta** e envie. A oferta aparece como *Pendente* em **Minhas ofertas**.
+2. **Corretor** (`corretor@example.com` / `Corretor123!`): o painel mostra a oferta na fila. Em **Ofertas**, clique em **Aceitar**: o imóvel fica reservado e a tela vai para **Contratos**. Clique em **Preparar contrato**, revise valor, data e condições e **Envie para aprovação**.
+3. **Administrador** (`admin@example.com` / `AdminTeste123!`): o painel lista “Contratos esperando sua aprovação”. Clique em **Revisar contratos** e em **Aprovar** (ou **Devolver ao corretor** para mostrar o pedido de ajuste).
+4. **Cliente**: o resumo mostra “Pronto para você assinar”. Clique em **Assinar**, baixe o PDF, digite o nome do cadastro (`Cliente Demonstração`), marque a concordância e confirme. O imóvel passa a *Vendido* ou *Alugado* e sai da vitrine.
+
+A linha do tempo de cada contrato mostra quem fez cada etapa e de quem é a vez. O teste `frontend/tests/fluxo.spec.js` faz esse mesmo roteiro no navegador.
+
+### Banco criado antes da Aula 3
+
+O H2 guarda perfil e situação do contrato como colunas `ENUM`, e o `ddl-auto=update` não altera colunas existentes. Na inicialização, `AjusteEnumsH2` acrescenta os valores novos (`CORRETOR`, `EM_PREPARACAO`, `AGUARDANDO_APROVACAO`) sem mudar os dados, e contratos antigos ainda não aprovados passam para *Aguardando aprovação*. O `AjusteEnumsH2Test` simula um banco antigo.
 
 ## Compatibilidade com a tabela do cronograma
 
@@ -142,9 +177,19 @@ npm.cmd run build
 npm.cmd exec -- playwright test
 ```
 
-Os testes de navegador exigem os dois servidores ligados e os dados opcionais de demonstração. A configuração usa o Chrome instalado em `C:/Program Files/Google/Chrome/Application/chrome.exe`. Em outra máquina, ajuste `playwright.config.js` ou instale o Chromium do Playwright e remova `executablePath`.
+Os testes de navegador exigem os dois servidores ligados e os dados opcionais de demonstração, e **gravam dados** (ofertas, contratos, um bairro de teste). Para não misturar com o banco de `data/`, suba o backend com banco em memória e uploads em `target/`:
 
-Os testes Java cobrem a tabela de verificação do cronograma (`CronogramaApiTest`), autenticação, autorização, CRUDs, isolamento entre clientes, favoritos únicos, proposta duplicada, aceite, contrato/PDF, falha e sucesso de notificação, assinatura, cancelamento e aceite concorrente. Os testes de navegador cobrem login, rota privada, validação, painel, edição/exclusão de bairros, favoritos, filtros, paginação, detalhe e responsividade.
+```powershell
+mvn '-Dmaven.repo.local=../.m2/repository' package -DskipTests
+java -jar target/tipo-imovel-pageable-0.0.1-SNAPSHOT.jar --spring.datasource.url=jdbc:h2:mem:demo --app.admin.email=admin@example.com --app.admin.password=AdminTeste123! --app.upload-dir=target/uploads-teste
+node scripts/dados-demo.mjs
+```
+
+A configuração usa o Chrome instalado em `C:/Program Files/Google/Chrome/Application/chrome.exe`. Em outra máquina, ajuste `playwright.config.js` ou instale o Chromium do Playwright e remova `executablePath`.
+
+Os testes Java (27) cobrem a tabela de verificação do cronograma (`CronogramaApiTest`), autenticação, autorização, CRUDs e, na negociação: o fluxo do checkpoint com as permissões de cada perfil, nenhuma etapa pulada, devolução ao corretor, aluguel com prazo, desistência e recusa com mensagem, falha e sucesso do email, assinatura, cancelamento e dois corretores aceitando ao mesmo tempo (`NegociacaoApiTest`); o perfil corretor criado pela tabela do professor, listas paginadas com filtros e os três painéis (`PerfisPaineisApiTest`); e a atualização de um banco antigo (`AjusteEnumsH2Test`).
+
+Os testes de navegador (8) cobrem login, rota privada, validação, painel, bairros, favoritos, filtros, paginação, detalhe e celular (`interface.spec.js`); o fluxo completo do checkpoint, inclusive a oferta duplicada e o nome errado na assinatura (`fluxo.spec.js`); e os estados de carregamento, erro 500 com nova tentativa, falta de conexão, lista vazia, acesso negado e sessão expirada (`estados.spec.js`). As falhas são simuladas interceptando a API com `page.route`.
 
 ## Git e entrega
 

@@ -34,7 +34,7 @@ public class UsuarioService {
         String email = normalizarEmail(dados.email());
         if (dados.nome() == null || dados.nome().isBlank() || dados.nome().length() > 150
                 || email.length() > 254 || !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+") || dados.perfil() == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe nome, email e perfil ADMIN ou USER validos.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe nome, email e perfil ADMIN, CORRETOR ou USER validos.");
         if (id == null || dados.senha() != null) {
             if (dados.senha() == null || dados.senha().length() < 8
                     || dados.senha().getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)

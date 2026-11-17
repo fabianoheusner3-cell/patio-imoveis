@@ -74,12 +74,25 @@ export const money = (value) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
     Number(value || 0),
   );
+// Valor resumido para os cartões dos painéis: R$ 550 mil, R$ 1,2 mi.
+export const moneyShort = (value) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Number(value || 0));
 export const date = (value) =>
   value
     ? new Intl.DateTimeFormat("pt-BR", {
         dateStyle: "short",
         timeStyle: "short",
       }).format(new Date(value))
+    : "—";
+// Datas sem horário (LocalDate do Java, "2026-11-24"): meio-dia evita trocar o dia pelo fuso.
+export const day = (value) =>
+  value
+    ? new Intl.DateTimeFormat("pt-BR").format(new Date(value + "T12:00:00"))
     : "—";
 export const label = (value) =>
   ({
@@ -88,10 +101,13 @@ export const label = (value) =>
     EM_ESPERA: "Em espera",
     RECUSADA: "Recusada",
     CANCELADA: "Cancelada",
+    EM_PREPARACAO: "Em preparação",
+    AGUARDANDO_APROVACAO: "Aguardando aprovação",
     AGUARDANDO_ASSINATURA: "Aguardando assinatura",
     ASSINADO: "Assinado",
     CANCELADO: "Cancelado",
     USER: "Cliente",
+    CORRETOR: "Corretor",
     ADMIN: "Administrador",
     VENDA: "Venda",
     ALUGUEL: "Aluguel",

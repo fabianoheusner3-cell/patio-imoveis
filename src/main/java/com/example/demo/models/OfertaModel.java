@@ -16,4 +16,8 @@ public class OfertaModel {
     @Column(length=4000) private String mensagem;
     @Enumerated(EnumType.STRING) @Column(nullable=false) private Status status=Status.PENDENTE;
     @Column(nullable=false) private Instant dataCriacao=Instant.now();
+    // Quando a oferta saiu de "em aberto" (aceita, recusada ou cancelada).
+    private Instant dataResposta;
+    // Mensagem opcional do corretor ao recusar; o cliente ve na area dele.
+    @Column(length=1000) private String resposta;
 }

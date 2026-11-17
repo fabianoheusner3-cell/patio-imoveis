@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  createContext,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import {
   Routes,
   Route,
@@ -26,8 +20,6 @@ import {
   Maximize,
   Search,
   SlidersHorizontal,
-  ChevronLeft,
-  ChevronRight,
   LogOut,
   Menu,
   X,
@@ -40,195 +32,25 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Download,
-  Check,
   Mail,
   ShieldCheck,
-  LoaderCircle,
 } from "lucide-react";
+import { api, API, money, label, available, normalize } from "./api";
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import { api, API, money, date, label, available, normalize } from "./api";
-const Auth = createContext(null),
-  Notice = createContext(null);
-function useData(loader, deps = []) {
-  const [data, setData] = useState(null),
-    [error, setError] = useState(""),
-    [loading, setLoading] = useState(true);
-  const [version, setVersion] = useState(0);
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError("");
-    Promise.resolve()
-      .then(loader)
-      .then((x) => {
-        if (active) setData(x);
-      })
-      .catch((e) => {
-        if (active) setError(e.message);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [...deps, version]);
-  return { data, error, loading, reload: () => setVersion((x) => x + 1) };
-}
-function State({ state, empty = false, children }) {
-  if (state.loading)
-    return (
-      <div className="state">
-        <LoaderCircle className="spin" /> Carregando…
-      </div>
-    );
-  if (state.error)
-    return (
-      <div className="state error" role="alert">
-        {state.error}
-        <button className="btn secondary" onClick={state.reload}>
-          Tentar novamente
-        </button>
-      </div>
-    );
-  if (empty)
-    return (
-      <div className="state">
-        <Search />
-        <h3>Sem resultados por aqui</h3>
-        <p>Tente outros filtros ou volte mais tarde.</p>
-      </div>
-    );
-  return children;
-}
-function Status({ value }) {
-  return <span className={"badge " + normalize(value)}>{label(value)}</span>;
-}
-function Modal({ title, onClose, children }) {
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onClose]);
-  return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="modal"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="section-head">
-          <h2>{title}</h2>
-          <button className="icon-btn" aria-label="Fechar" onClick={onClose}>
-            <X />
-          </button>
-        </div>
-        {children}
-      </section>
-    </div>
-  );
-}
-function Form({ onSubmit, children, submit = "Salvar", initialError = "" }) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState(initialError);
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const form = e.currentTarget;
-        if (!form.reportValidity()) return;
-        setBusy(true);
-        setError("");
-        try {
-          await onSubmit(Object.fromEntries(new FormData(form)), form);
-        } catch (e) {
-          setError(e.message);
-        } finally {
-          setBusy(false);
-        }
-      }}
-    >
-      {error && (
-        <p className="alert error" role="alert">
-          {error}
-        </p>
-      )}
-      <fieldset disabled={busy}>
-        {children}
-        <button className="btn" type="submit">
-          {busy ? (
-            <>
-              <LoaderCircle className="spin" />
-              Salvando…
-            </>
-          ) : (
-            submit
-          )}
-        </button>
-      </fieldset>
-    </form>
-  );
-}
-function Field({
-  name,
-  title,
-  type = "text",
-  value,
-  required = true,
-  children,
-  ...rest
-}) {
-  const id = React.useId();
-  return (
-    <div className="field">
-      <label htmlFor={id}>{title}</label>
-      {children ? (
-        <select
-          id={id}
-          name={name}
-          defaultValue={value}
-          required={required}
-          {...rest}
-        >
-          {children}
-        </select>
-      ) : type === "textarea" ? (
-        <textarea
-          id={id}
-          name={name}
-          defaultValue={value}
-          required={required}
-          rows="4"
-          {...rest}
-        />
-      ) : (
-        <input
-          id={id}
-          name={name}
-          type={type}
-          defaultValue={value ?? ""}
-          required={required}
-          {...rest}
-        />
-      )}
-    </div>
-  );
-}
+  Auth,
+  Notice,
+  homeFor,
+  useData,
+  State,
+  Status,
+  Modal,
+  Form,
+  Field,
+  PageHeading,
+  Pagination,
+} from "./ui";
+import { Offers, Contracts, OfertaModal } from "./negociacao";
+import { AdminDashboard, CorretorDashboard, ClienteResumo } from "./paineis";
 function Protected({ role, children }) {
   const { user, loading } = useContext(Auth);
   const location = useLocation();
@@ -245,30 +67,46 @@ function Protected({ role, children }) {
     );
   return children;
 }
+// Menu lateral de cada perfil.
+const MENUS = {
+  ADMIN: [
+    ["/admin", "Painel", LayoutDashboard],
+    ["/admin/imoveis", "Imóveis", Building2],
+    ["/admin/bairros", "Bairros", MapPin],
+    ["/admin/tipos", "Tipos de imóveis", Home],
+    ["/admin/fotos", "Fotos", Camera],
+    ["/admin/usuarios", "Usuários", Users],
+    ["/admin/ofertas", "Ofertas", Handshake],
+    ["/admin/contratos", "Contratos", FileText],
+  ],
+  CORRETOR: [
+    ["/corretor", "Painel", LayoutDashboard],
+    ["/corretor/ofertas", "Ofertas", Handshake],
+    ["/corretor/contratos", "Contratos", FileText],
+  ],
+  USER: [
+    ["/cliente", "Resumo", LayoutDashboard],
+    ["/cliente/ofertas", "Minhas ofertas", Handshake],
+    ["/cliente/favoritos", "Favoritos", Heart],
+    ["/cliente/contratos", "Contratos", FileText],
+  ],
+};
+const AREAS = {
+  admin: "GESTÃO DA IMOBILIÁRIA",
+  corretor: "ÁREA DO CORRETOR",
+  cliente: "SEU ESPAÇO",
+};
 function Shell() {
   const { user, logout } = useContext(Auth),
     [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
-  const admin = location.pathname.startsWith("/admin"),
-    client = location.pathname.startsWith("/cliente");
-  const links =
-    user?.perfil === "ADMIN"
-      ? [
-          ["/admin", "Painel", LayoutDashboard],
-          ["/admin/imoveis", "Imóveis", Building2],
-          ["/admin/bairros", "Bairros", MapPin],
-          ["/admin/tipos", "Tipos de imóveis", Home],
-          ["/admin/fotos", "Fotos", Camera],
-          ["/admin/usuarios", "Usuários", Users],
-          ["/admin/ofertas", "Ofertas", Handshake],
-          ["/admin/contratos", "Contratos", FileText],
-        ]
-      : [
-          ["/cliente", "Minhas ofertas", Handshake],
-          ["/cliente/favoritos", "Favoritos", Heart],
-          ["/cliente/contratos", "Contratos", FileText],
-        ];
+  const area = Object.keys(AREAS).find(
+    (a) =>
+      location.pathname === "/" + a ||
+      location.pathname.startsWith("/" + a + "/"),
+  );
+  const links = MENUS[user?.perfil] || MENUS.USER;
   return (
     <>
       <header className="topbar">
@@ -297,10 +135,7 @@ function Shell() {
           </Link>
           {user ? (
             <>
-              <Link
-                className="nav-account"
-                to={user.perfil === "ADMIN" ? "/admin" : "/cliente"}
-              >
+              <Link className="nav-account" to={homeFor(user.perfil)}>
                 {user.nome.split(" ")[0]} · {label(user.perfil)}
               </Link>
               <button className="icon-btn" onClick={logout} aria-label="Sair">
@@ -314,12 +149,10 @@ function Shell() {
           )}
         </nav>
       </header>
-      {admin || client ? (
+      {area ? (
         <div className="workspace">
           <aside className="sidebar">
-            <p className="eyebrow">
-              {admin ? "GESTÃO DA IMOBILIÁRIA" : "SEU ESPAÇO"}
-            </p>
+            <p className="eyebrow">{AREAS[area]}</p>
             {links.map(([url, text, Icon]) => (
               <NavLink key={url} to={url} end>
                 <Icon size={18} />
@@ -341,7 +174,7 @@ function Shell() {
                 path="/admin"
                 element={
                   <Protected role="ADMIN">
-                    <Dashboard />
+                    <AdminDashboard />
                   </Protected>
                 }
               />
@@ -354,10 +187,42 @@ function Shell() {
                 }
               />
               <Route
+                path="/corretor"
+                element={
+                  <Protected role="CORRETOR">
+                    <CorretorDashboard />
+                  </Protected>
+                }
+              />
+              <Route
+                path="/corretor/ofertas"
+                element={
+                  <Protected role="CORRETOR">
+                    <Offers perfil="CORRETOR" />
+                  </Protected>
+                }
+              />
+              <Route
+                path="/corretor/contratos"
+                element={
+                  <Protected role="CORRETOR">
+                    <Contracts perfil="CORRETOR" />
+                  </Protected>
+                }
+              />
+              <Route
                 path="/cliente"
                 element={
                   <Protected role="USER">
-                    <Offers />
+                    <ClienteResumo />
+                  </Protected>
+                }
+              />
+              <Route
+                path="/cliente/ofertas"
+                element={
+                  <Protected role="USER">
+                    <Offers perfil="USER" />
                   </Protected>
                 }
               />
@@ -373,9 +238,13 @@ function Shell() {
                 path="/cliente/contratos"
                 element={
                   <Protected role="USER">
-                    <Contracts />
+                    <Contracts perfil="USER" />
                   </Protected>
                 }
+              />
+              <Route
+                path="*"
+                element={<div className="state">Página não encontrada.</div>}
               />
             </Routes>
           </main>
@@ -467,10 +336,7 @@ export default function App() {
 function Login() {
   const { user, setUser } = useContext(Auth),
     navigate = useNavigate();
-  if (user)
-    return (
-      <Navigate to={user.perfil === "ADMIN" ? "/admin" : "/cliente"} replace />
-    );
+  if (user) return <Navigate to={homeFor(user.perfil)} replace />;
   return (
     <main className="login-page">
       <section className="login-story">
@@ -504,9 +370,7 @@ function Login() {
             try {
               const me = await api("/auth/me");
               setUser(me);
-              navigate(me.perfil === "ADMIN" ? "/admin" : "/cliente", {
-                replace: true,
-              });
+              navigate(homeFor(me.perfil), { replace: true });
             } catch (e) {
               sessionStorage.removeItem("patio-token");
               throw e;
@@ -543,7 +407,7 @@ async function entrarComToken(token, setUser, navigate) {
   try {
     const me = await api("/auth/me");
     setUser(me);
-    navigate(me.perfil === "ADMIN" ? "/admin" : "/cliente", { replace: true });
+    navigate(homeFor(me.perfil), { replace: true });
   } catch (e) {
     sessionStorage.removeItem("patio-token");
     throw e;
@@ -553,10 +417,7 @@ function Cadastro() {
   const { user, setUser } = useContext(Auth),
     navigate = useNavigate(),
     notify = useContext(Notice);
-  if (user)
-    return (
-      <Navigate to={user.perfil === "ADMIN" ? "/admin" : "/cliente"} replace />
-    );
+  if (user) return <Navigate to={homeFor(user.perfil)} replace />;
   return (
     <main className="login-page">
       <section className="login-story">
@@ -567,8 +428,8 @@ function Cadastro() {
           começa aqui.
         </h1>
         <p>
-          Com a conta de cliente você guarda favoritos, faz ofertas e
-          acompanha seus contratos.
+          Com a conta de cliente você guarda favoritos, faz ofertas e acompanha
+          seus contratos.
         </p>
         <div className="login-house">
           <Home size={140} strokeWidth={0.7} />
@@ -586,7 +447,11 @@ function Cadastro() {
               throw new Error("As senhas não conferem.");
             await api("/public/cadastro", {
               method: "POST",
-              body: { nome: dados.nome, email: dados.email, senha: dados.senha },
+              body: {
+                nome: dados.nome,
+                email: dados.email,
+                senha: dados.senha,
+              },
             });
             const login = await api("/auth/login", {
               method: "POST",
@@ -630,7 +495,7 @@ function Cadastro() {
     </main>
   );
 }
-function Card({ item, onFavorite, favorited = false, purpose }) {
+function Card({ item, onFavorite, favorited = false, purpose, children }) {
   const rental = purpose === "ALUGUEL" || !item.precoVenda;
   const photos = useData(() => api("/fotos/imovel/" + item.id), [item.id]);
   const photo = photos.data?.find((p) => p.capa) || photos.data?.[0];
@@ -709,6 +574,7 @@ function Card({ item, onFavorite, favorited = false, purpose }) {
             Também para aluguel: {money(item.precoAluguel)}/mês
           </p>
         )}
+        {children}
       </div>
     </article>
   );
@@ -838,9 +704,7 @@ function Catalog() {
             <h2>Explore os imóveis</h2>
           </div>
           <span className="catalog-count">
-            {all.loading
-              ? "Buscando imóveis…"
-              : `${total} imóveis disponíveis`}
+            {all.loading ? "Buscando imóveis…" : `${total} imóveis disponíveis`}
           </span>
         </div>
         <div className="filters">
@@ -941,31 +805,7 @@ function Catalog() {
               />
             ))}
           </div>
-          <div className="pagination">
-            <button
-              disabled={page === 0}
-              onClick={() => setPage((x) => x - 1)}
-              aria-label="Página anterior"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            {Array.from({ length: pages }, (_, n) => (
-              <button
-                key={n}
-                className={page === n ? "active" : ""}
-                onClick={() => setPage(n)}
-              >
-                {n + 1}
-              </button>
-            ))}
-            <button
-              disabled={page >= pages - 1}
-              onClick={() => setPage((x) => x + 1)}
-              aria-label="Próxima página"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
+          <Pagination page={page} pages={pages} onChange={setPage} />
         </State>
       </section>
       <section className="contact-strip">
@@ -999,6 +839,11 @@ function Detail() {
     [contact, setContact] = useState(false),
     [photo, setPhoto] = useState(0);
   const i = state.data?.item;
+  const favorites = useData(
+    () => (user?.perfil === "USER" ? api("/favoritos") : Promise.resolve([])),
+    [user?.id],
+  );
+  const favorito = !!favorites.data?.some((f) => f.imovel.id === Number(id));
   return (
     <main className="section detail">
       <Link className="back-link" to="/">
@@ -1125,15 +970,27 @@ function Detail() {
                     className="text-button"
                     onClick={async () => {
                       try {
-                        await api("/favoritos/" + id, { method: "POST" });
-                        notify("Imóvel salvo nos favoritos.");
+                        await api("/favoritos/" + id, {
+                          method: favorito ? "DELETE" : "POST",
+                        });
+                        favorites.reload();
+                        notify(
+                          favorito
+                            ? "Imóvel removido dos favoritos."
+                            : "Imóvel salvo nos favoritos.",
+                        );
                       } catch (e) {
                         notify(e.message);
                       }
                     }}
                   >
-                    <Heart size={17} />
-                    Salvar nos favoritos
+                    <Heart
+                      size={17}
+                      fill={favorito ? "currentColor" : "none"}
+                    />
+                    {favorito
+                      ? "Remover dos favoritos"
+                      : "Salvar nos favoritos"}
                   </button>
                 )}
                 <p className="hint">
@@ -1143,51 +1000,7 @@ function Detail() {
               </aside>
             </div>
             {offer && (
-              <Modal title="Sua proposta" onClose={() => setOffer(false)}>
-                <p>
-                  {i.titulo} · Código {i.id}
-                </p>
-                <Form
-                  submit="Enviar oferta"
-                  onSubmit={async (d) => {
-                    await api("/ofertas", {
-                      method: "POST",
-                      body: {
-                        ...d,
-                        imovelId: Number(id),
-                        valorProposto: Number(d.valorProposto),
-                      },
-                    });
-                    setOffer(false);
-                    notify("Oferta enviada! Acompanhe em Minhas ofertas.");
-                  }}
-                >
-                  <Field
-                    name="tipo"
-                    title="Tipo de oferta"
-                    value={i.precoVenda ? "VENDA" : "ALUGUEL"}
-                  >
-                    {i.precoVenda > 0 && <option value="VENDA">Compra</option>}
-                    {i.precoAluguel > 0 && (
-                      <option value="ALUGUEL">Aluguel</option>
-                    )}
-                  </Field>
-                  <Field
-                    name="valorProposto"
-                    title="Valor proposto (R$)"
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    max="999999999999.99"
-                  />
-                  <Field
-                    name="mensagem"
-                    title="Mensagem"
-                    type="textarea"
-                    maxLength="4000"
-                  />
-                </Form>
-              </Modal>
+              <OfertaModal imovel={i} onClose={() => setOffer(false)} />
             )}
             {contact && (
               <Modal
@@ -1240,104 +1053,11 @@ function Detail() {
     </main>
   );
 }
-function Offers({ admin = false }) {
-  const [filter, setFilter] = useState(""),
-    state = useData(
-      () => api("/ofertas" + (filter ? "?status=" + filter : "")),
-      [filter],
-    ),
-    notify = useContext(Notice),
-    [busy, setBusy] = useState(null);
-  async function decidir(id, acao) {
-    if (!confirm(`${acao === "aceitar" ? "Aceitar" : "Recusar"} esta oferta?`))
-      return;
-    setBusy(id);
-    try {
-      await api(`/ofertas/${id}/${acao}`, { method: "POST" });
-      state.reload();
-      notify(
-        acao === "aceitar"
-          ? "Oferta aceita. O contrato foi criado e o imóvel reservado."
-          : "Oferta recusada.",
-      );
-    } catch (e) {
-      notify(e.message);
-    } finally {
-      setBusy(null);
-    }
-  }
-  return (
-    <>
-      <PageHeading
-        eyebrow={admin ? "NEGOCIAÇÕES" : "ÁREA DO CLIENTE"}
-        title={admin ? "Gestão de ofertas" : "Minhas ofertas"}
-        description="Cada proposta é um passo mais perto do seu novo endereço."
-      />
-      {admin && (
-        <select
-          aria-label="Filtrar ofertas por situação"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="">Todas as situações</option>
-          {["PENDENTE", "ACEITA", "EM_ESPERA", "RECUSADA", "CANCELADA"].map(
-            (s) => (
-              <option key={s}>{s}</option>
-            ),
-          )}
-        </select>
-      )}
-      <State state={state} empty={!state.data?.length}>
-        <div className="list-stack">
-          {state.data?.map((o) => (
-            <article className="list-card" key={o.id}>
-              <div>
-                <p className="eyebrow">
-                  OFERTA #{o.id} · {label(o.tipo)}
-                </p>
-                <Link to={"/imoveis/" + o.imovel.id}>
-                  <h3>{o.imovel.titulo}</h3>
-                </Link>
-                {admin && (
-                  <p>
-                    {o.usuario.nome} · {o.usuario.email}
-                  </p>
-                )}
-                <p className="muted">{o.mensagem}</p>
-                <small>{date(o.dataCriacao)}</small>
-              </div>
-              <div className="list-actions">
-                <Status value={o.status} />
-                <strong>{money(o.valorProposto)}</strong>
-                {admin && ["PENDENTE", "EM_ESPERA"].includes(o.status) && (
-                  <div className="actions">
-                    <button
-                      disabled={busy === o.id}
-                      className="btn small"
-                      onClick={() => decidir(o.id, "aceitar")}
-                    >
-                      Aceitar
-                    </button>
-                    <button
-                      disabled={busy === o.id}
-                      className="btn small secondary"
-                      onClick={() => decidir(o.id, "recusar")}
-                    >
-                      Recusar
-                    </button>
-                  </div>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
-      </State>
-    </>
-  );
-}
+// Favoritos integrados às ofertas: dá para propor direto da lista.
 function Favorites() {
   const state = useData(() => api("/favoritos")),
-    notify = useContext(Notice);
+    notify = useContext(Notice),
+    [ofertando, setOfertando] = useState(null);
   return (
     <>
       <PageHeading
@@ -1345,7 +1065,12 @@ function Favorites() {
         title="Meus favoritos"
         description="Os lugares que você quer guardar por perto."
       />
-      <State state={state} empty={!state.data?.length}>
+      <State
+        state={state}
+        empty={!state.data?.length}
+        emptyTitle="Nenhum favorito ainda"
+        emptyText="Toque no coração de um imóvel da vitrine para guardá-lo aqui."
+      >
         <div className="property-grid compact">
           {state.data?.map((f) => (
             <Card
@@ -1360,275 +1085,34 @@ function Favorites() {
                   notify(e.message);
                 }
               }}
-            />
+            >
+              {available(f.imovel) ? (
+                <button
+                  className="btn small secondary card-action"
+                  onClick={() => setOfertando(f.imovel)}
+                >
+                  <Handshake size={15} />
+                  Fazer oferta
+                </button>
+              ) : (
+                <p className="hint card-action">
+                  Este imóvel não está disponível para ofertas agora.
+                </p>
+              )}
+            </Card>
           ))}
         </div>
       </State>
-    </>
-  );
-}
-function PageHeading({ eyebrow, title, description, children }) {
-  return (
-    <div className="section-head page-heading">
-      <div>
-        <p className="eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
-        {description && <p className="muted">{description}</p>}
-      </div>
-      {children}
-    </div>
-  );
-}
-function Contracts({ admin = false }) {
-  const state = useData(() => api("/contratos")),
-    notify = useContext(Notice),
-    [sign, setSign] = useState(null),
-    [busy, setBusy] = useState(null);
-  async function action(c, acao) {
-    if (
-      ["cancelar", "recusar"].includes(acao) &&
-      !confirm("Cancelar este contrato e liberar o imóvel para novas ofertas?")
-    )
-      return;
-    setBusy(c.id);
-    try {
-      const res = await api(`/contratos/${c.id}/${acao}`, { method: "POST" });
-      notify(res.mensagem || "Contrato atualizado.");
-      state.reload();
-    } catch (e) {
-      notify(e.message);
-    } finally {
-      setBusy(null);
-    }
-  }
-  async function download(c) {
-    try {
-      const blob = await api(`/contratos/${c.id}/pdf`, { download: true });
-      const url = URL.createObjectURL(blob),
-        a = document.createElement("a");
-      a.href = url;
-      a.download = `contrato-${c.id}.pdf`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (e) {
-      notify(e.message);
-    }
-  }
-  return (
-    <>
-      <PageHeading
-        eyebrow={admin ? "DOCUMENTOS" : "ÁREA DO CLIENTE"}
-        title={admin ? "Gestão de contratos" : "Meus contratos"}
-        description="Tudo organizado para o próximo passo."
-      />
-      <State state={state} empty={!state.data?.length}>
-        <div className="list-stack">
-          {state.data?.map((c) => (
-            <article key={c.id} className="list-card">
-              <div>
-                <p className="eyebrow">
-                  CONTRATO #{c.id} · OFERTA #{c.oferta.id}
-                </p>
-                <h3>{c.oferta.imovel.titulo}</h3>
-                <p>
-                  {c.oferta.usuario.nome} · {label(c.oferta.tipo)} ·{" "}
-                  {money(c.oferta.valorProposto)}
-                </p>
-                <p className="hint">
-                  Aprovação: {date(c.dataAprovacao)}
-                  <br />
-                  Envio: {date(c.dataEnvio)}
-                  <br />
-                  Assinatura: {date(c.dataAssinatura)}
-                </p>
-              </div>
-              <div className="list-actions">
-                <Status value={c.status} />
-                <div className="actions wrap">
-                  <button
-                    className="btn small secondary"
-                    onClick={() => download(c)}
-                  >
-                    <Download size={15} />
-                    PDF
-                  </button>
-                  {admin && c.status === "AGUARDANDO_ASSINATURA" && (
-                    <>
-                      <button
-                        disabled={busy === c.id || !!c.dataAprovacao}
-                        className="btn small"
-                        onClick={() => action(c, "aprovar")}
-                      >
-                        Aprovar
-                      </button>
-                      <button
-                        disabled={busy === c.id || !c.dataAprovacao}
-                        className="btn small secondary"
-                        onClick={() => action(c, "enviar")}
-                      >
-                        <Mail size={15} />
-                        {c.dataEnvio ? "Reenviar" : "Enviar ao cliente"}
-                      </button>
-                      <button
-                        disabled={busy === c.id}
-                        className="btn small danger"
-                        onClick={() => action(c, "recusar")}
-                      >
-                        Recusar
-                      </button>
-                    </>
-                  )}
-                  {admin && c.status === "ASSINADO" && (
-                    <button
-                      disabled={busy === c.id}
-                      className="btn small danger"
-                      onClick={() => action(c, "cancelar")}
-                    >
-                      Cancelar contrato
-                    </button>
-                  )}
-                  {!admin &&
-                    c.status === "AGUARDANDO_ASSINATURA" &&
-                    c.dataAprovacao &&
-                    c.dataEnvio && (
-                      <button className="btn small" onClick={() => setSign(c)}>
-                        Assinar contrato
-                      </button>
-                    )}
-                </div>
-                {!admin &&
-                  c.status === "AGUARDANDO_ASSINATURA" &&
-                  !c.dataEnvio && (
-                    <p className="hint">
-                      Aguarde a aprovação e o envio pela imobiliária.
-                    </p>
-                  )}
-              </div>
-            </article>
-          ))}
-        </div>
-      </State>
-      {sign && (
-        <Modal
-          title={"Assinar contrato #" + sign.id}
-          onClose={() => setSign(null)}
-        >
-          <p>
-            Baixe e leia o PDF antes de confirmar. A assinatura é registrada com
-            sua conta autenticada.
-          </p>
-          <button className="text-button" onClick={() => download(sign)}>
-            Baixar contrato
-          </button>
-          <Form
-            submit="Confirmar assinatura"
-            onSubmit={async (d) => {
-              await api(`/contratos/${sign.id}/assinar`, {
-                method: "POST",
-                body: { nome: d.nome, concordo: d.concordo === "on" },
-              });
-              setSign(null);
-              state.reload();
-              notify("Contrato assinado com sucesso.");
-            }}
-          >
-            <Field name="nome" title="Seu nome completo, conforme o cadastro" />
-            <label className="check">
-              <input name="concordo" type="checkbox" required />
-              Li e concordo com o contrato.
-            </label>
-          </Form>
-        </Modal>
+      {ofertando && (
+        <OfertaModal imovel={ofertando} onClose={() => setOfertando(null)} />
       )}
-    </>
-  );
-}
-function Dashboard() {
-  const state = useData(() => api("/painel"));
-  const colors = ["#1c3449", "#b76e52", "#7b98ad", "#d5b49f", "#8a7a94"];
-  return (
-    <>
-      <PageHeading
-        eyebrow="VISÃO GERAL"
-        title="Bem-vindo à sua gestão"
-        description="Acompanhe os números e as oportunidades da imobiliária."
-      />
-      <State state={state}>
-        {state.data && (
-          <>
-            <div className="stats">
-              {[
-                [Building2, "Imóveis disponíveis", state.data.disponiveis],
-                [Handshake, "Ofertas pendentes", state.data.pendentes],
-                [FileText, "Aguardando assinatura", state.data.aguardando],
-              ].map(([Icon, text, value]) => (
-                <div className="stat" key={text}>
-                  <Icon />
-                  <p>{text}</p>
-                  <strong>{value}</strong>
-                  <span>Visão atual da imobiliária</span>
-                </div>
-              ))}
-            </div>
-            <div className="charts">
-              {[
-                ["Imóveis por bairro", "porBairro"],
-                ["Ofertas por situação", "porSituacao"],
-                ["Imóveis por finalidade", "porFinalidade"],
-              ].map(([title, key], index) => (
-                <section className="chart-card" key={key}>
-                  <h3>{title}</h3>
-                  {!state.data[key].length ? (
-                    <div className="state">Sem resultados para exibir.</div>
-                  ) : (
-                    <ResponsiveContainer width="100%" height={260}>
-                      {index === 1 ? (
-                        <PieChart>
-                          <Pie
-                            data={state.data[key]}
-                            dataKey="total"
-                            nameKey="nome"
-                            innerRadius={55}
-                            outerRadius={85}
-                            label
-                          >
-                            {state.data[key].map((_, n) => (
-                              <Cell key={n} fill={colors[n % colors.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(v, n) => [v, label(n)]} />
-                        </PieChart>
-                      ) : (
-                        <BarChart
-                          data={state.data[key]}
-                          margin={{ top: 15, right: 10, bottom: 15, left: -20 }}
-                        >
-                          <XAxis dataKey="nome" fontSize={11} />
-                          <YAxis allowDecimals={false} />
-                          <Tooltip />
-                          <Bar
-                            dataKey="total"
-                            name="Imóveis"
-                            fill={colors[index]}
-                            radius={[5, 5, 0, 0]}
-                          />
-                        </BarChart>
-                      )}
-                    </ResponsiveContainer>
-                  )}
-                </section>
-              ))}
-            </div>
-          </>
-        )}
-      </State>
     </>
   );
 }
 function AdminPage() {
   const { resource } = useParams();
-  if (resource === "ofertas") return <Offers admin />;
-  if (resource === "contratos") return <Contracts admin />;
+  if (resource === "ofertas") return <Offers perfil="ADMIN" />;
+  if (resource === "contratos") return <Contracts perfil="ADMIN" />;
   if (resource === "fotos") return <Photos />;
   if (["imoveis", "bairros", "tipos", "usuarios"].includes(resource))
     return <Crud key={resource} resource={resource} />;
@@ -1985,6 +1469,7 @@ function Crud({ resource }) {
                         value={editing.perfil || "USER"}
                       >
                         <option value="USER">Cliente</option>
+                        <option value="CORRETOR">Corretor</option>
                         <option value="ADMIN">Administrador</option>
                       </Field>
                     </>

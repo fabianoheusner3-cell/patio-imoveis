@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 public interface FavoritoRepository extends JpaRepository<FavoritoModel,Long> {
     List<FavoritoModel> findByUsuarioId(Long id);
+    long countByUsuarioId(Long id);
     Optional<FavoritoModel> findByUsuarioIdAndImovelId(Long usuarioId,Integer imovelId);
     void deleteByImovelId(Integer id);
 }

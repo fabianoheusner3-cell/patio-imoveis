@@ -9,7 +9,8 @@ import lombok.Setter;
 @Table(name = "usuarios")
 @Getter @Setter
 public class UsuarioModel {
-    public enum Perfil { ADMIN, USER }
+    // CORRETOR (Aula 3): aceita ofertas e prepara os contratos que o ADMIN aprova.
+    public enum Perfil { ADMIN, USER, CORRETOR }
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
